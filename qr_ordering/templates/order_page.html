@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Ice Cream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto p-4 pb-24">
+        <h1 class="text-3xl font-bold mb-4">Table {{ table.number }}</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for ice_cream in ice_creams %}
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" class="w-full h-48 object-cover rounded-md mb-4">
+                <h2 class="text-xl font-bold">{{ ice_cream.name }}</h2>
+                <p class="text-gray-600">₹{{ ice_cream.price }}</p>
+                <div class="flex items-center mt-4">
+                    <button class="bg-gray-200 px-2 py-1 rounded-l-md" onclick="updateQuantity('{{ ice_cream.id }}', -1, '{{ ice_cream.name }}', '{{ ice_cream.price }}')">-</button>
+                    <input type="text" id="quantity-{{ ice_cream.id }}" class="w-12 text-center border-t border-b" value="0" readonly>
+                    <button class="bg-gray-200 px-2 py-1 rounded-r-md" onclick="updateQuantity('{{ ice_cream.id }}', 1, '{{ ice_cream.name }}', '{{ ice_cream.price }}')">+</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Floating Navbar -->
+    <div id="bottom-navbar" class="fixed bottom-0 left-0 w-full bg-white shadow-lg p-4 transform translate-y-full transition-transform duration-300 ease-in-out">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <span id="item-count" class="font-bold">0</span> items in cart
+            </div>
+            <button class="bg-blue-500 text-white px-4 py-2 rounded-md" onclick="toggleCartModal()">View Cart</button>
+        </div>
+    </div>
+    
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Your Order</h2>
+            <div id="cart-items"></div>
+            <div class="text-right font-bold mt-4">Total: ₹<span id="total-price">0.00</span></div>
+            <div class="flex justify-end mt-6">
+                <button class="text-gray-600 mr-4" onclick="toggleCartModal()">Close</button>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded-md" onclick="submitOrder()">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = {};
+
+        function updateQuantity(iceCreamId, change, name, price) {
+            let quantityInput = document.getElementById(`quantity-${iceCreamId}`);
+            let currentQuantity = parseInt(quantityInput.value);
+            let newQuantity = currentQuantity + change;
+
+            if (newQuantity >= 0) {
+                quantityInput.value = newQuantity;
+                if (newQuantity > 0) {
+                    cart[iceCreamId] = { quantity: newQuantity, name: name, price: parseFloat(price) };
+                } else {
+                    delete cart[iceCreamId];
+                }
+            }
+            updateNavbar();
+        }
+
+        function updateNavbar() {
+            const itemCount = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+            const navbar = document.getElementById('bottom-navbar');
+            if (itemCount > 0) {
+                document.getElementById('item-count').textContent = itemCount;
+                navbar.classList.remove('translate-y-full');
+            } else {
+                navbar.classList.add('translate-y-full');
+            }
+        }
+
+        function toggleCartModal() {
+            const modal = document.getElementById('cart-modal');
+            const cartItemsContainer = document.getElementById('cart-items');
+            const totalPriceElement = document.getElementById('total-price');
+            
+            cartItemsContainer.innerHTML = '';
+            let totalPrice = 0;
+
+            for (const [id, item] of Object.entries(cart)) {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between items-center mb-2';
+                itemElement.innerHTML = `
+                    <span>${item.quantity} x ${item.name}</span>
+                    <span>₹${(item.quantity * item.price).toFixed(2)}</span>
+                `;
+                cartItemsContainer.appendChild(itemElement);
+                totalPrice += item.quantity * item.price;
+            }
+            
+            totalPriceElement.textContent = totalPrice.toFixed(2);
+            modal.classList.toggle('hidden');
+        }
+
+        function submitOrder() {
+            let items = [];
+            for (const [iceCreamId, item] of Object.entries(cart)) {
+                items.push({
+                    id: iceCreamId,
+                    quantity: item.quantity
+                });
+            }
+
+            if (items.length === 0) {
+                alert("Please select at least one ice cream.");
+                return;
+            }
+
+            fetch("{% url 'submit_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    table_id: "{{ table.id }}",
+                    items: items
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = data.status_url;
+                } else {
+                    alert("Failed to place order. Please try again.");
+                }
+            });
+        }
+    </script>
+</body>
+</html>

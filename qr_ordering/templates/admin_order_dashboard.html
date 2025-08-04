@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Order Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-900">
+    <div class="max-w-5xl mx-auto py-8 px-4">
+        <h1 class="text-3xl font-bold mb-6 text-center">🍽️ Admin Order Dashboard</h1>
+        
+        <table class="w-full bg-white rounded shadow">
+            <thead>
+                <tr class="bg-gray-200 text-left">
+                    <th class="py-2 px-4">Order ID</th>
+                    <th class="py-2 px-4">Table</th>
+                    <th class="py-2 px-4">Ice Cream</th>
+                    <th class="py-2 px-4">Status</th>
+                    <th class="py-2 px-4">Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-t">
+                    <td class="py-2 px-4">#{{ order.id }}</td>
+                    <td class="py-2 px-4">Table {{ order.table.number }}</td>
+                    <td class="py-2 px-4">{{ order.icecream.name }}</td>
+                    <td class="py-2 px-4">{{ order.status }}</td>
+                    <td class="py-2 px-4">{{ order.created_at|date:"H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center py-4">No orders yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

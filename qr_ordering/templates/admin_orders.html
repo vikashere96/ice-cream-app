@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin - Orders</title>
+</head>
+<body>
+    <h1>All Orders</h1>
+
+    {% if orders %}
+        <table border="1" cellpadding="8">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Table</th>
+                    <th>Ice Cream</th>
+                    <th>Toppings</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.table.number }}</td>
+                    <td>{{ order.icecream.name }}</td>
+                    <td>
+                        {% for topping in order.toppings.all %}
+                            {{ topping.name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>{{ order.timestamp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No orders yet.</p>
+    {% endif %}
+</body>
+</html>

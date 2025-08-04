@@ -1,0 +1,47 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manage Tables{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-textPrimary">Manage Tables</h1>
+    <a href="{% url 'add_table' %}" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-700">Add Table</a>
+</div>
+<div class="bg-surface rounded-lg shadow-md border border-cardBorder">
+    <table class="w-full">
+        <thead>
+            <tr class="border-b border-cardBorder">
+                <th class="text-left py-3 px-4 font-semibold text-textSecondary">Number</th>
+                <th class="text-left py-3 px-4 font-semibold text-textSecondary">QR Code</th>
+                <th class="text-right py-3 px-4 font-semibold text-textSecondary">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for table in tables %}
+            <tr class="border-b border-cardBorder">
+                <td class="py-3 px-4 text-textPrimary">{{ table.number }}</td>
+                <td class="py-3 px-4">
+                    {% if table.qr_code %}
+                    <a href="{{ table.qr_code.url }}" target="_blank" class="hover:opacity-75">
+                        <img src="{{ table.qr_code.url }}" alt="QR Code for Table {{ table.number }}" class="w-16 h-16 object-cover rounded-md">
+                    </a>
+                    {% else %}
+                        <span class="text-textSecondary">No QR Code</span>
+                    {% endif %}
+                </td>
+                <td class="py-3 px-4 text-right">
+                    <a href="{% url 'edit_table' table.id %}" class="text-primary hover:underline">Edit</a>
+                    <a href="{% url 'delete_table' table.id %}" class="text-danger hover:underline ml-4">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center py-6 text-textSecondary">
+                    No tables have been added yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

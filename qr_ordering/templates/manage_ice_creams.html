@@ -1,0 +1,41 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Manage Ice Creams{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-textPrimary">Manage Ice Creams</h1>
+    <a href="{% url 'add_ice_cream' %}" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-700">Add Ice Cream</a>
+</div>
+<div class="bg-surface rounded-lg shadow-md border border-cardBorder">
+    <table class="w-full">
+        <thead>
+            <tr class="border-b border-cardBorder">
+                <th class="text-left py-3 px-4 font-semibold text-textSecondary">Name</th>
+                <th class="text-left py-3 px-4 font-semibold text-textSecondary">Price</th>
+                <th class="text-left py-3 px-4 font-semibold text-textSecondary">Image</th>
+                <th class="text-right py-3 px-4 font-semibold text-textSecondary">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ice_cream in ice_creams %}
+            <tr class="border-b border-cardBorder">
+                <td class="py-3 px-4 text-textPrimary">{{ ice_cream.name }}</td>
+                <td class="py-3 px-4 text-textPrimary">₹{{ ice_cream.price }}</td>
+                <td class="py-3 px-4">
+                    {% if ice_cream.image %}
+                        <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" class="w-16 h-16 object-cover rounded-md">
+                    {% else %}
+                        <span class="text-textSecondary">No Image</span>
+                    {% endif %}
+                </td>
+                <td class="py-3 px-4 text-right">
+                    <a href="{% url 'edit_ice_cream' ice_cream.id %}" class="text-primary hover:underline">Edit</a>
+                    <a href="{% url 'delete_ice_cream' ice_cream.id %}" class="text-danger hover:underline ml-4">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %} 

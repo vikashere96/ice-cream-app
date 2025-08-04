@@ -1,0 +1,175 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-textPrimary">Welcome, {{ user.username }}!</h1>
+    <p class="text-textSecondary">Here's what's happening in your ice cream shop today.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
+        <h3 class="text-lg font-semibold text-textSecondary">Total Orders Today</h3>
+        <p class="text-3xl font-bold text-textPrimary">{{ stats.total_orders_today }}</p>
+    </div>
+    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
+        <h3 class="text-lg font-semibold text-textSecondary">Total Revenue Today</h3>
+        <p class="text-3xl font-bold text-textPrimary">₹{{ stats.total_revenue_today|floatformat:2 }}</p>
+    </div>
+    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
+        <h3 class="text-lg font-semibold text-textSecondary">Most Popular Flavor</h3>
+        <p class="text-3xl font-bold text-textPrimary">{{ stats.most_popular_ice_cream }}</p>
+    </div>
+</div>
+
+<h2 class="text-xl font-semibold text-textPrimary mb-4">Live Orders</h2>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Pending Orders -->
+    <div id="pending-orders">
+        <h3 class="text-lg font-bold text-textPrimary mb-3">Pending</h3>
+        <div class="space-y-4">
+            {% for order in orders_by_status.pending %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+    <!-- In Progress Orders -->
+    <div id="inprogress-orders">
+        <h3 class="text-lg font-bold text-textPrimary mb-3">In Progress</h3>
+        <div class="space-y-4">
+            {% for order in orders_by_status.in_progress %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Completed Orders -->
+    <div id="completed-orders">
+        <h3 class="text-lg font-bold text-textPrimary mb-3">Completed</h3>
+        <div class="space-y-4">
+            {% for order in orders_by_status.completed %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+    <!-- Cancelled Orders -->
+    <div id="cancelled-orders">
+        <h3 class="text-lg font-bold text-textPrimary mb-3">Cancelled</h3>
+        <div class="space-y-4">
+            {% for order in orders_by_status.cancelled %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Your Firebase script from before
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDX7bLWxiqYsGnouo1SxlQR_Ffn4Mqh7Lo",
+        authDomain: "ice-cream-shop-69592.firebaseapp.com",
+        projectId: "ice-cream-shop-69592",
+        storageBucket: "ice-cream-shop-69592.appspot.com",
+        messagingSenderId: "392338402302",
+        appId: "1:392338402302:web:bb0c3798317f5b9406eeaf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const statusClasses = {
+        'Pending': 'bg-yellow-400',
+        'In Progress': 'bg-blue-500',
+        'Completed': 'bg-green-500',
+        'Cancelled': 'bg-red-500'
+    };
+
+    onChildAdded(ref(database, 'orders'), (snapshot) => {
+        const order = snapshot.val();
+        
+        if (document.getElementById(`order-${order.id}`)) return;
+
+        const orderCard = createOrderCard(order);
+        const containerId = `${order.status.toLowerCase().replace(' ', '')}-orders > div`;
+        document.querySelector(`#${containerId}`).prepend(orderCard);
+    });
+
+    onValue(ref(database, 'orders'), (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            const order = childSnapshot.val();
+            const orderElement = document.getElementById(`order-${order.id}`);
+            if (orderElement) {
+                const statusSelect = orderElement.querySelector('select');
+                const statusBadge = orderElement.querySelector('span');
+                
+                statusSelect.value = order.status.toLowerCase().replace(' ', '_');
+                statusBadge.textContent = order.status;
+                
+                Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
+                statusBadge.classList.add(statusClasses[order.status]);
+
+                // Move card to new column if status changed
+                const newContainerId = `${order.status.toLowerCase().replace(' ', '')}-orders > div`;
+                const newContainer = document.querySelector(`#${newContainerId}`);
+                if (orderElement.parentElement !== newContainer) {
+                    newContainer.prepend(orderElement);
+                }
+            }
+        });
+    });
+
+    function createOrderCard(order) {
+        const orderElement = document.createElement('div');
+        orderElement.className = 'bg-surface p-4 rounded-lg shadow-md border border-cardBorder';
+        orderElement.id = `order-${order.id}`;
+
+        let itemsHtml = '';
+        if (order.items) {
+            for (const item of order.items) {
+                itemsHtml += `<li class="text-textSecondary">${item.quantity} x ${item.name}</li>`;
+            }
+        }
+
+        orderElement.innerHTML = `
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-lg font-semibold text-textPrimary">Order #${order.id}</h3>
+                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
+            </div>
+            <p class="text-textSecondary mb-2">Table: ${order.table}</p>
+            <p class="text-textSecondary text-sm mb-3">Time: ${new Date(order.created_at).toLocaleTimeString()}</p>
+            <ul class="mb-3">
+                ${itemsHtml}
+            </ul>
+            <select onchange="updateStatus('${order.id}', this.value)" class="w-full bg-background border border-cardBorder rounded-md px-3 py-2 text-textPrimary focus:ring-primary focus:border-primary">
+                <option value="pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="in_progress" ${order.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                <option value="completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+        `;
+        return orderElement;
+    }
+
+    function updateStatus(orderId, status) {
+        fetch('/panel/order/' + orderId + '/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `status=${status}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                alert('Failed to update status. Please try again.');
+            }
+        });
+    }
+
+    window.updateStatus = updateStatus;
+</script>
+{% endblock %} 

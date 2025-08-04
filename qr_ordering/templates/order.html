@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Ice Cream</title>
+</head>
+<body>
+    <h1>Place Order - Table {{ table.number }}</h1>
+
+    <form action="{% url 'submit_order' %}" method="POST">
+        {% csrf_token %}
+
+        <input type="hidden" name="table_id" value="{{ table.id }}">
+
+        <label for="icecream">Choose Ice Cream:</label>
+        <select name="icecream" required>
+            {% for item in icecreams %}
+                <option value="{{ item.id }}">{{ item.name }} - ₹{{ item.price }}</option>
+            {% endfor %}
+        </select>
+
+        <h3>Choose Toppings:</h3>
+        {% for topping in toppings %}
+            <label>
+                <input type="checkbox" name="toppings" value="{{ topping.id }}">
+                {{ topping.name }} (+₹{{ topping.price }})
+            </label><br>
+        {% endfor %}
+
+        <br>
+        <button type="submit">Submit Order</button>
+    </form>
+</body>
+</html>
