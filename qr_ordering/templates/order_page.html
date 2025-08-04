@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Ice Cream</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body class="bg-gray-100 font-sans">
     <div class="container mx-auto p-4 pb-24">
@@ -41,12 +42,59 @@
             <h2 class="text-2xl font-bold mb-4">Your Order</h2>
             <div id="cart-items"></div>
             <div class="text-right font-bold mt-4">Total: ₹<span id="total-price">0.00</span></div>
+            <div class="mb-4">
+                <p class="font-semibold mb-2">Choose your payment method:</p>
+                <div class="mt-2">
+                    <button onclick="openRazorpay()" class="bg-blue-800 text-white px-4 py-2 rounded-md w-full">Pay with Razorpay (UPI/Cards/Net Banking)</button>
+                </div>
+            </div>
             <div class="flex justify-end mt-6">
                 <button class="text-gray-600 mr-4" onclick="toggleCartModal()">Close</button>
-                <button class="bg-blue-500 text-white px-4 py-2 rounded-md" onclick="submitOrder()">Place Order</button>
+                <button id="place-order-btn" class="bg-blue-500 text-white px-4 py-2 rounded-md" onclick="submitOrder()">Place Order</button>
             </div>
         </div>
     </div>
+
+    <!-- Loader (hidden by default) -->
+    <div id="loader" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+    </div>
+    <style>
+    /* Loader CSS from loading.io */
+    .lds-ring {
+      display: inline-block;
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+    .lds-ring div {
+      box-sizing: border-box;
+      display: block;
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      margin: 8px;
+      border: 8px solid #3498db;
+      border-radius: 50%;
+      animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      border-color: #3498db transparent transparent transparent;
+    }
+    .lds-ring div:nth-child(1) {
+      animation-delay: -0.45s;
+    }
+    .lds-ring div:nth-child(2) {
+      animation-delay: -0.3s;
+    }
+    .lds-ring div:nth-child(3) {
+      animation-delay: -0.15s;
+    }
+    @keyframes lds-ring {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    </style>
+
+    <form id="csrf-form" style="display:none;">{% csrf_token %}</form>
 
     <script>
         let cart = {};
@@ -102,6 +150,98 @@
         }
 
         function submitOrder() {
+            let btn = document.getElementById('place-order-btn');
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('loader').classList.remove('hidden');
+            let items = [];
+            for (const [iceCreamId, item] of Object.entries(cart)) {
+                items.push({
+                    id: iceCreamId,
+                    quantity: item.quantity
+                });
+            }
+
+            if (items.length === 0) {
+                alert("Please select at least one ice cream.");
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('loader').classList.add('hidden');
+                return;
+            }
+
+            fetch("{% url 'submit_order' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    table_id: "{{ table.id }}",
+                    items: items
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data); // Debug log
+                if (data.status === 'success') {
+                    let totalPrice = Object.values(cart).reduce((sum, item) => sum + item.quantity * item.price, 0);
+                    let upiUrl = `upi://pay?pa=success@upi&pn=TestMerchant&am=${totalPrice.toFixed(2)}&cu=INR`;
+                    // Use <a> tag for UPI redirection (better compatibility)
+                    let a = document.createElement('a');
+                    a.href = upiUrl;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    // Fallback message if UPI app does not open
+                    setTimeout(() => {
+                        document.getElementById('loader').classList.add('hidden');
+                        window.location.href = '/order/success/?order_id=' + data.order_id;
+                    }, 5000);
+                } else if (data.message && data.message.includes('Order placed but failed to sync with Firebase')) {
+                    alert('Order placed! (But not synced to Firebase.) You can continue.');
+                    setTimeout(() => {
+                        document.getElementById('loader').classList.add('hidden');
+                        window.location.href = '/order/success/?order_id=' + data.order_id;
+                    }, 2000);
+                } else {
+                    alert("Failed to place order. Please try again.");
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    document.getElementById('loader').classList.add('hidden');
+                }
+            })
+            .catch(err => {
+                alert("Failed to place order. Please try again.");
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                document.getElementById('loader').classList.add('hidden');
+            });
+        }
+
+        function openUPI(app) {
+            // Get the total price from the cart
+            let totalPrice = Object.values(cart).reduce((sum, item) => sum + item.quantity * item.price, 0);
+            const upiId = 'success@upi';
+            const name = 'TestMerchant';
+            let url = `upi://pay?pa=${upiId}&pn=${name}&am=${totalPrice.toFixed(2)}&cu=INR`;
+            if (app === 'gpay') url += '&pn=GooglePay';
+            if (app === 'paytm') url += '&pn=Paytm';
+            if (app === 'phonepe') url += '&pn=PhonePe';
+            if (app === 'bhim') url += '&pn=BHIM';
+            let a = document.createElement('a');
+            a.href = url;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function openRazorpay() {
+            let totalPrice = Object.values(cart).reduce((sum, item) => sum + item.quantity * item.price, 0);
+            
+            // First place the order in Django database
             let items = [];
             for (const [iceCreamId, item] of Object.entries(cart)) {
                 items.push({
@@ -115,11 +255,12 @@
                 return;
             }
 
+            // Place order first
             fetch("{% url 'submit_order' %}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 },
                 body: JSON.stringify({
                     table_id: "{{ table.id }}",
@@ -129,10 +270,35 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    window.location.href = data.status_url;
+                    // Now open Razorpay with the actual order ID
+                    let options = {
+                        "key": "rzp_test_Oq0mTDIi1X3lAb",
+                        "amount": Math.round(totalPrice * 100), // Amount in paise
+                        "currency": "INR",
+                        "name": "Ice Cream Shop",
+                        "description": `Order #${data.order_id}`,
+                        "image": "https://example.com/your_logo.png",
+                        "handler": function (response) {
+                            // Redirect to success page with the actual order ID
+                            window.location.href = '/order/success/?order_id=' + data.order_id;
+                        },
+                        "prefill": {
+                            "name": "Customer Name",
+                            "email": "customer@example.com",
+                            "contact": "9999999999"
+                        },
+                        "theme": {
+                            "color": "#3399cc"
+                        }
+                    };
+                    let rzp = new Razorpay(options);
+                    rzp.open();
                 } else {
                     alert("Failed to place order. Please try again.");
                 }
+            })
+            .catch(err => {
+                alert("Failed to place order. Please try again.");
             });
         }
     </script>

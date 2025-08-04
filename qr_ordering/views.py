@@ -47,7 +47,13 @@ def submit_order(request):
             'created_at': order.created_at.isoformat(),
             'items': [{'quantity': item.quantity, 'name': item.ice_cream.name} for item in order.items.all()]
         }
-        db.reference(f'orders/{order.id}').set(order_data)
+        try:
+            db.reference(f'orders/{order.id}').set(order_data)
+            print(f"Order {order.id} synced to Firebase successfully")
+        except Exception as e:
+            print(f'Firebase error for order {order.id}: {e}')
+            # Continue without Firebase - order is still saved in Django database
+            return JsonResponse({'status': 'success', 'order_id': order.id, 'status_url': status_url})
         
         status_url = reverse('order_status', kwargs={'order_id': order.id})
         return JsonResponse({'status': 'success', 'order_id': order.id, 'status_url': status_url})
@@ -99,7 +105,12 @@ def update_order_status(request, order_id):
             order.save()
             
             # Push to Firebase
-            db.reference(f'orders/{order.id}/status').set(order.get_status_display())
+            try:
+                db.reference(f'orders/{order.id}/status').set(order.get_status_display())
+                print(f"Order {order.id} status updated in Firebase")
+            except Exception as e:
+                print(f'Firebase status update error for order {order.id}: {e}')
+                # Continue without Firebase
             
             return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
@@ -191,3 +202,25 @@ def delete_table(request, pk):
     table = get_object_or_404(Table, pk=pk)
     table.delete()
     return redirect('manage_tables')
+
+@login_required
+def clear_all_orders(request):
+    if request.method == 'POST':
+        Order.objects.all().delete()
+        return JsonResponse({'status': 'success', 'message': 'All orders cleared successfully'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+@login_required
+def delete_order(request, order_id):
+    if request.method == 'POST':
+        try:
+            order = Order.objects.get(id=order_id)
+            order.delete()
+            return JsonResponse({'status': 'success', 'message': 'Order deleted successfully'})
+        except Order.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Order not found'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
+
+def order_success(request):
+    order_id = request.GET.get('order_id', '12345')  # Get order_id from URL parameter
+    return render(request, 'order_success.html', {'order_id': order_id})

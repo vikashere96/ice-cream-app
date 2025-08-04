@@ -6,12 +6,15 @@ urlpatterns = [
     path('table/<str:token>/', views.order_page, name='order_page'),
     path('order/submit/', views.submit_order, name='submit_order'),
     path('order/status/<int:order_id>/', views.order_status, name='order_status'),
+    path('order/success/', views.order_success, name='order_success'),
 
     # Admin
     path('panel/login/', views.admin_login, name='admin_login'),
     path('panel/logout/', views.admin_logout, name='admin_logout'),
     path('panel/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('panel/order/<int:order_id>/update/', views.update_order_status, name='update_order_status'),
+    path('panel/orders/clear/', views.clear_all_orders, name='clear_all_orders'),
+    path('panel/order/<int:order_id>/delete/', views.delete_order, name='delete_order'),
     
     # Ice Cream Management
     path('panel/ice-creams/', views.manage_ice_creams, name='manage_ice_creams'),

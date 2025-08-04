@@ -1,20 +1,505 @@
 {% extends 'admin_base.html' %}
 
-{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Table{% endblock %}
+{% block title %}{% if table %}Edit{% else %}Add{% endif %} Table{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-surface p-8 rounded-lg shadow-md border border-cardBorder">
-    <h1 class="text-2xl font-bold text-textPrimary mb-6">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Table</h1>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-4">
-            <label for="id_number" class="block text-textSecondary text-sm font-medium mb-2">Table Number</label>
-            {{ form.number }}
+<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+        <div class="floating-orb orb-4"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Header Section -->
+        <div class="glass-header p-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="glass-icon-small bg-emerald-500/20">
+                                <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-white">
+                                    {% if table %}Edit Table{% else %}Add New Table{% endif %}
+                                </h1>
+                                <p class="text-white/60 text-sm">
+                                    {% if table %}Update table configuration{% else %}Create a new table with QR code{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <a href="{% url 'manage_tables' %}" class="glass-button-secondary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            <span>Back to Tables</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="flex justify-end">
-            <a href="{% url 'manage_tables' %}" class="text-textSecondary py-2 px-4 rounded-md mr-2">Cancel</a>
-            <button type="submit" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-700">Save</button>
+
+        <!-- Form Section -->
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="glass-card">
+                <form method="post" class="space-y-8">
+                    {% csrf_token %}
+                    
+                    <!-- Table Information -->
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="glass-icon-small bg-blue-500/20">
+                                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-xl font-semibold text-white">Table Information</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Table Number Field -->
+                            <div class="space-y-2">
+                                <label for="{{ form.number.id_for_label }}" class="block text-white/80 text-sm font-medium">
+                                    Table Number *
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                        </svg>
+                                    </div>
+                                    {{ form.number }}
+                                    {% if form.number.errors %}
+                                        <div class="text-red-400 text-sm mt-1">{{ form.number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Table Status -->
+                            <div class="space-y-2">
+                                <label class="block text-white/80 text-sm font-medium">
+                                    Table Status
+                                </label>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="status" value="active" checked 
+                                               class="glass-radio">
+                                        <span class="text-white/80 text-sm">Active</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="status" value="inactive" 
+                                               class="glass-radio">
+                                        <span class="text-white/80 text-sm">Inactive</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- QR Code Generation -->
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="glass-icon-small bg-purple-500/20">
+                                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-xl font-semibold text-white">QR Code Configuration</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- QR Settings -->
+                            <div class="space-y-4">
+                                <div class="glass-info-card">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="glass-icon-small bg-info-500/20 mt-1">
+                                            <svg class="w-4 h-4 text-info-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-white font-medium mb-1">QR Code Features</h3>
+                                            <ul class="text-white/60 text-sm space-y-1">
+                                                <li>• Automatic QR code generation</li>
+                                                <li>• Links to table-specific menu</li>
+                                                <li>• Mobile-friendly ordering</li>
+                                                <li>• Real-time order tracking</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="auto-generate-qr" checked class="glass-checkbox">
+                                        <span class="text-white/80 text-sm">Auto-generate QR code</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" id="enable-ordering" checked class="glass-checkbox">
+                                        <span class="text-white/80 text-sm">Enable ordering for this table</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- QR Preview -->
+                            <div class="space-y-4">
+                                <label class="block text-white/80 text-sm font-medium">QR Code Preview</label>
+                                <div class="glass-preview-area">
+                                    <div id="qr-preview" class="w-full h-48 bg-gradient-to-br from-purple-400 to-pink-400 rounded-xl flex items-center justify-center">
+                                        {% if table and table.qr_code %}
+                                            <img src="{{ table.qr_code.url }}" alt="QR Code for Table {{ table.number }}" 
+                                                 class="w-full h-full object-cover rounded-xl">
+                                        {% else %}
+                                            <div class="text-center">
+                                                <svg class="w-16 h-16 text-white/60 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                                                </svg>
+                                                <p class="text-white/60 text-sm">QR code will be generated</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="space-y-6">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="glass-icon-small bg-orange-500/20">
+                                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-xl font-semibold text-white">Advanced Settings</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Table Capacity -->
+                            <div class="space-y-2">
+                                <label for="table-capacity" class="block text-white/80 text-sm font-medium">
+                                    Table Capacity
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <select id="table-capacity" class="glass-input pl-10">
+                                        <option value="2">2 Seats</option>
+                                        <option value="4" selected>4 Seats</option>
+                                        <option value="6">6 Seats</option>
+                                        <option value="8">8 Seats</option>
+                                        <option value="10">10+ Seats</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Table Location -->
+                            <div class="space-y-2">
+                                <label for="table-location" class="block text-white/80 text-sm font-medium">
+                                    Table Location
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <select id="table-location" class="glass-input pl-10">
+                                        <option value="indoor">Indoor</option>
+                                        <option value="outdoor">Outdoor</option>
+                                        <option value="window">Window Side</option>
+                                        <option value="corner">Corner</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex items-center justify-between pt-6 border-t border-white/10">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                            <span class="text-emerald-400 text-sm">QR code will be generated automatically</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <a href="{% url 'manage_tables' %}" class="glass-button-secondary">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                <span>Cancel</span>
+                            </a>
+                            <button type="submit" class="glass-button-primary">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>{% if table %}Update{% else %}Create{% endif %} Table</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </form>
-</div>
+    </div>
+
+    <!-- Floating Bottom Navbar -->
+    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div class="glass-navbar">
+            <div class="flex items-center space-x-6 px-6 py-3">
+                <button onclick="window.location.href='/panel/dashboard/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="window.location.href='/panel/ice-creams/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span>Menu</span>
+                </button>
+                <button onclick="window.location.href='/panel/tables/'" class="nav-item active">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span>Tables</span>
+                </button>
+                <button onclick="window.location.href='/panel/logout/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Glassmorphism Styles */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 16px 12px 40px;
+            border-radius: 12px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .glass-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-preview-area {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-info-card {
+            background: rgba(59, 130, 246, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-button-primary {
+            background: rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-primary:hover {
+            background: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .glass-button-secondary {
+            background: rgba(156, 163, 175, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(156, 163, 175, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-secondary:hover {
+            background: rgba(156, 163, 175, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .glass-navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            space-y: 1;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .glass-icon-small {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-checkbox {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .glass-radio {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Floating Orbs Animation */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 150px;
+            height: 150px;
+            top: 20%;
+            right: 10%;
+            animation-delay: 1s;
+        }
+
+        .orb-3 {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+
+        .orb-4 {
+            width: 120px;
+            height: 120px;
+            bottom: 10%;
+            right: 20%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+    </style>
+
+    <script>
+        // Add loading animation to submit button
+        document.querySelector('form').addEventListener('submit', function() {
+            const button = document.querySelector('button[type="submit"]');
+            button.innerHTML = `
+                <svg class="animate-spin w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                <span>Saving...</span>
+            `;
+            button.disabled = true;
+        });
+    </script>
 {% endblock %} 

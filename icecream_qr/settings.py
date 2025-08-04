@@ -131,7 +131,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 import firebase_admin
 from firebase_admin import credentials, db
 
-cred = credentials.Certificate('firebase-service-account-key.json')
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://ice-cream-shop-69592-default-rtdb.firebaseio.com'
-})
+try:
+    cred = credentials.Certificate('firebase-service-account-key.json')
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://ice-cream-shop-69592-default-rtdb.firebaseio.com/'
+    })
+    print("Firebase initialized successfully")
+except Exception as e:
+    print(f"Firebase initialization failed: {e}")
+    # Continue without Firebase for now

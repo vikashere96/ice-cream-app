@@ -3,45 +3,652 @@
 {% block title %}Manage Tables{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold text-textPrimary">Manage Tables</h1>
-    <a href="{% url 'add_table' %}" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-blue-700">Add Table</a>
-</div>
-<div class="bg-surface rounded-lg shadow-md border border-cardBorder">
-    <table class="w-full">
-        <thead>
-            <tr class="border-b border-cardBorder">
-                <th class="text-left py-3 px-4 font-semibold text-textSecondary">Number</th>
-                <th class="text-left py-3 px-4 font-semibold text-textSecondary">QR Code</th>
-                <th class="text-right py-3 px-4 font-semibold text-textSecondary">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for table in tables %}
-            <tr class="border-b border-cardBorder">
-                <td class="py-3 px-4 text-textPrimary">{{ table.number }}</td>
-                <td class="py-3 px-4">
-                    {% if table.qr_code %}
-                    <a href="{{ table.qr_code.url }}" target="_blank" class="hover:opacity-75">
-                        <img src="{{ table.qr_code.url }}" alt="QR Code for Table {{ table.number }}" class="w-16 h-16 object-cover rounded-md">
-                    </a>
-                    {% else %}
-                        <span class="text-textSecondary">No QR Code</span>
-                    {% endif %}
-                </td>
-                <td class="py-3 px-4 text-right">
-                    <a href="{% url 'edit_table' table.id %}" class="text-primary hover:underline">Edit</a>
-                    <a href="{% url 'delete_table' table.id %}" class="text-danger hover:underline ml-4">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3" class="text-center py-6 text-textSecondary">
-                    No tables have been added yet.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+        <div class="floating-orb orb-4"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Header Section -->
+        <div class="glass-header p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="glass-icon-small bg-emerald-500/20">
+                                <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-white">Manage Tables</h1>
+                                <p class="text-white/60 text-sm">{{ tables.count }} tables configured</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="bulkGenerateQR()" class="glass-button-secondary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                            </svg>
+                            <span>Generate QR</span>
+                        </button>
+                        <a href="{% url 'add_table' %}" class="glass-button-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <span>Add Table</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                <div class="glass-card stats-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Total Tables</p>
+                            <p class="text-3xl font-bold text-white">{{ tables.count }}</p>
+                        </div>
+                        <div class="glass-icon bg-emerald-500/20">
+                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stats-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">With QR Codes</p>
+                            <p class="text-3xl font-bold text-white">{{ with_qr_count }}</p>
+                        </div>
+                        <div class="glass-icon bg-blue-500/20">
+                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stats-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Active Tables</p>
+                            <p class="text-3xl font-bold text-white">{{ active_tables_count }}</p>
+                        </div>
+                        <div class="glass-icon bg-green-500/20">
+                            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card stats-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Last Updated</p>
+                            <p class="text-lg font-bold text-white">{{ last_updated|date:"M d" }}</p>
+                        </div>
+                        <div class="glass-icon bg-purple-500/20">
+                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Grid -->
+            <div class="glass-card">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="tablesGrid">
+                    {% for table in tables %}
+                    <div class="glass-table-card" data-number="{{ table.number }}">
+                        <div class="relative">
+                            {% if table.qr_code %}
+                                <div class="relative">
+                                    <img src="{{ table.qr_code.url }}" alt="QR Code for Table {{ table.number }}" 
+                                         class="w-full h-48 object-cover rounded-t-xl">
+                                    <div class="absolute inset-0 bg-black/20 rounded-t-xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                        <button onclick="downloadQR('{{ table.qr_code.url }}', 'table-{{ table.number }}-qr.png')" 
+                                                class="glass-button-small bg-white/20 text-white hover:bg-white/30">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="w-full h-48 bg-gradient-to-br from-gray-400 to-gray-600 rounded-t-xl flex items-center justify-center">
+                                    <div class="text-center">
+                                        <svg class="w-16 h-16 text-white/60 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
+                                        </svg>
+                                        <p class="text-white/60 text-sm">No QR Code</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="absolute top-3 right-3">
+                                <input type="checkbox" class="bulk-select glass-checkbox" value="{{ table.id }}">
+                            </div>
+                            <div class="absolute top-3 left-3">
+                                <span class="glass-badge bg-emerald-500/20 text-emerald-400">Table {{ table.number }}</span>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-white mb-2">Table {{ table.number }}</h3>
+                            <div class="space-y-2 mb-4">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-white/60 text-sm">Table ID:</span>
+                                    <span class="text-white font-medium">{{ table.id }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-white/60 text-sm">QR Status:</span>
+                                    <span class="glass-badge {% if table.qr_code %}bg-green-500/20 text-green-400{% else %}bg-red-500/20 text-red-400{% endif %}">
+                                        {% if table.qr_code %}Active{% else %}Missing{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="previewQR('{{ table.qr_code.url }}', 'Table {{ table.number }}')" 
+                                            class="glass-button-small bg-blue-500/20 text-blue-400 hover:bg-blue-500/30"
+                                            {% if not table.qr_code %}disabled{% endif %}>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="regenerateQR({{ table.id }})" 
+                                            class="glass-button-small bg-purple-500/20 text-purple-400 hover:bg-purple-500/30">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{% url 'edit_table' table.id %}" 
+                                       class="glass-button-small bg-blue-500/20 text-blue-400 hover:bg-blue-500/30">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </a>
+                                    <button onclick="deleteTable({{ table.id }}, '{{ table.number }}')" 
+                                            class="glass-button-small bg-red-500/20 text-red-400 hover:bg-red-500/30">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-12">
+                        <div class="glass-icon-large bg-emerald-500/20 mx-auto mb-4">
+                            <svg class="w-12 h-12 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white mb-2">No Tables Found</h3>
+                        <p class="text-white/60 mb-6">Start by adding your first table to the system</p>
+                        <a href="{% url 'add_table' %}" class="glass-button-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            <span>Add First Table</span>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Bottom Navbar -->
+    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div class="glass-navbar">
+            <div class="flex items-center space-x-6 px-6 py-3">
+                <button onclick="window.location.href='/panel/dashboard/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="window.location.href='/panel/ice-creams/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span>Menu</span>
+                </button>
+                <button onclick="window.location.href='/panel/tables/'" class="nav-item active">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span>Tables</span>
+                </button>
+                <button onclick="window.location.href='/panel/logout/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Preview Modal -->
+    <div id="qr-preview-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="glass-modal max-w-md">
+            <div class="text-center">
+                <h3 class="text-xl font-semibold text-white mb-4" id="qr-preview-title">QR Code Preview</h3>
+                <div class="glass-card mb-4">
+                    <img id="qr-preview-image" src="" alt="QR Code" class="w-full max-w-xs mx-auto">
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="closeQRPreview()" class="glass-button-secondary">Close</button>
+                    <button onclick="downloadCurrentQR()" class="glass-button-primary">Download</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="glass-modal">
+            <div class="text-center">
+                <div class="glass-icon-large bg-red-500/20 mx-auto mb-4">
+                    <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-2">Confirm Deletion</h3>
+                <p class="text-white/60 mb-6" id="delete-message">Are you sure you want to delete this table?</p>
+                <div class="flex space-x-3">
+                    <button onclick="closeDeleteModal()" class="glass-button-secondary">Cancel</button>
+                    <button onclick="confirmDelete()" class="glass-button-danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Glassmorphism Styles */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .glass-table-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .glass-table-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-button-primary {
+            background: rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-primary:hover {
+            background: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .glass-button-secondary {
+            background: rgba(156, 163, 175, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(156, 163, 175, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-secondary:hover {
+            background: rgba(156, 163, 175, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .glass-button-danger {
+            background: rgba(239, 68, 68, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .glass-button-small {
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-button-small:hover {
+            transform: scale(1.1);
+        }
+
+        .glass-button-small:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .glass-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-checkbox {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .glass-navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            space-y: 1;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .glass-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-icon-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-icon-small {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .stats-card:hover::before {
+            left: 100%;
+        }
+
+        /* Floating Orbs Animation */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 150px;
+            height: 150px;
+            top: 20%;
+            right: 10%;
+            animation-delay: 1s;
+        }
+
+        .orb-3 {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+
+        .orb-4 {
+            width: 120px;
+            height: 120px;
+            bottom: 10%;
+            right: 20%;
+            animation-delay: 3s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+    </style>
+
+    <script>
+        let selectedTableId = null;
+        let selectedTableNumber = null;
+        let currentQRUrl = null;
+
+        function previewQR(qrUrl, tableName) {
+            if (!qrUrl) return;
+            currentQRUrl = qrUrl;
+            document.getElementById('qr-preview-image').src = qrUrl;
+            document.getElementById('qr-preview-title').textContent = `QR Code - ${tableName}`;
+            document.getElementById('qr-preview-modal').classList.remove('hidden');
+        }
+
+        function closeQRPreview() {
+            document.getElementById('qr-preview-modal').classList.add('hidden');
+            currentQRUrl = null;
+        }
+
+        function downloadQR(qrUrl, filename) {
+            const link = document.createElement('a');
+            link.href = qrUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadCurrentQR() {
+            if (currentQRUrl) {
+                downloadQR(currentQRUrl, 'table-qr.png');
+            }
+        }
+
+        function regenerateQR(tableId) {
+            if (confirm('Are you sure you want to regenerate the QR code for this table?')) {
+                // Implement QR regeneration
+                console.log('Regenerate QR for table:', tableId);
+            }
+        }
+
+        function deleteTable(id, number) {
+            selectedTableId = id;
+            selectedTableNumber = number;
+            document.getElementById('delete-message').textContent = `Are you sure you want to delete Table ${number}?`;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            selectedTableId = null;
+            selectedTableNumber = null;
+        }
+
+        function confirmDelete() {
+            if (selectedTableId) {
+                window.location.href = `/panel/table/${selectedTableId}/delete/`;
+            }
+        }
+
+        function bulkGenerateQR() {
+            const selected = document.querySelectorAll('.bulk-select:checked');
+            if (selected.length === 0) {
+                alert('Please select tables to generate QR codes for');
+                return;
+            }
+            
+            if (confirm(`Generate QR codes for ${selected.length} selected tables?`)) {
+                const ids = Array.from(selected).map(cb => cb.value);
+                // Implement bulk QR generation
+                console.log('Bulk generate QR for tables:', ids);
+            }
+        }
+
+        // Auto-hide modals when clicking outside
+        document.getElementById('qr-preview-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeQRPreview();
+            }
+        });
+
+        document.getElementById('delete-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+    </script>
 {% endblock %} 

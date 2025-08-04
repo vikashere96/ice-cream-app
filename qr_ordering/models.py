@@ -49,6 +49,13 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} for Table {self.table.number}"
+    
+    def get_total_amount(self):
+        """Calculate the total amount for this order"""
+        total = 0
+        for item in self.items.all():
+            total += item.quantity * item.ice_cream.price
+        return total
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')

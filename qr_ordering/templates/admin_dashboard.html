@@ -1,84 +1,655 @@
 {% extends 'admin_base.html' %}
 
-{% block title %}Admin Dashboard{% endblock %}
-
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-textPrimary">Welcome, {{ user.username }}!</h1>
-    <p class="text-textSecondary">Here's what's happening in your ice cream shop today.</p>
-</div>
+<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+        <div class="floating-orb orb-4"></div>
+        <div class="floating-orb orb-5"></div>
+    </div>
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
-        <h3 class="text-lg font-semibold text-textSecondary">Total Orders Today</h3>
-        <p class="text-3xl font-bold text-textPrimary">{{ stats.total_orders_today }}</p>
-    </div>
-    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
-        <h3 class="text-lg font-semibold text-textSecondary">Total Revenue Today</h3>
-        <p class="text-3xl font-bold text-textPrimary">₹{{ stats.total_revenue_today|floatformat:2 }}</p>
-    </div>
-    <div class="bg-surface p-6 rounded-lg shadow-md border border-cardBorder">
-        <h3 class="text-lg font-semibold text-textSecondary">Most Popular Flavor</h3>
-        <p class="text-3xl font-bold text-textPrimary">{{ stats.most_popular_ice_cream }}</p>
-    </div>
-</div>
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Header Section -->
+        <div class="glass-header p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
+                            <span class="text-white/80 text-sm font-medium">Live Dashboard</span>
+                        </div>
+                        <div class="w-px h-6 bg-white/20"></div>
+                        <div class="text-white/60 text-sm">Welcome back, <span class="font-semibold text-white">{{ user.username }}</span></div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="refreshOrders()" class="glass-button-primary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Refresh</span>
+                        </button>
+                        <button onclick="clearAllOrders()" class="glass-button-danger">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span>Clear All</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-<h2 class="text-xl font-semibold text-textPrimary mb-4">Live Orders</h2>
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-    <!-- Pending Orders -->
-    <div id="pending-orders">
-        <h3 class="text-lg font-bold text-textPrimary mb-3">Pending</h3>
-        <div class="space-y-4">
-            {% for order in orders_by_status.pending %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-        </div>
-    </div>
-    <!-- In Progress Orders -->
-    <div id="inprogress-orders">
-        <h3 class="text-lg font-bold text-textPrimary mb-3">In Progress</h3>
-        <div class="space-y-4">
-            {% for order in orders_by_status.in_progress %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-        </div>
-    </div>
-    <!-- Completed Orders -->
-    <div id="completed-orders">
-        <h3 class="text-lg font-bold text-textPrimary mb-3">Completed</h3>
-        <div class="space-y-4">
-            {% for order in orders_by_status.completed %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-        </div>
-    </div>
-    <!-- Cancelled Orders -->
-    <div id="cancelled-orders">
-        <h3 class="text-lg font-bold text-textPrimary mb-3">Cancelled</h3>
-        <div class="space-y-4">
-            {% for order in orders_by_status.cancelled %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-        </div>
-    </div>
-</div>
+        <!-- Stats Cards -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Today's Orders</p>
+                            <p class="text-4xl font-bold text-white">{{ stats.total_orders_today }}</p>
+                        </div>
+                        <div class="glass-icon bg-blue-500/20">
+                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-emerald-400 text-sm font-medium">↑ 12% from yesterday</span>
+                    </div>
+                </div>
 
-<script type="module">
-    // Your Firebase script from before
+                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Today's Revenue</p>
+                            <p class="text-4xl font-bold text-white">₹{{ stats.total_revenue_today|floatformat:0 }}</p>
+                        </div>
+                        <div class="glass-icon bg-emerald-500/20">
+                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-emerald-400 text-sm font-medium">↑ 8% from yesterday</span>
+                    </div>
+                </div>
+
+                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Popular Flavor</p>
+                            <p class="text-2xl font-bold text-white">{{ stats.most_popular_ice_cream }}</p>
+                        </div>
+                        <div class="glass-icon bg-purple-500/20">
+                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-purple-400 text-sm font-medium">Most ordered today</span>
+                    </div>
+                </div>
+
+                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium">Active Tables</p>
+                            <p class="text-4xl font-bold text-white">{{ orders_by_status.pending.count|add:orders_by_status.in_progress.count }}</p>
+                        </div>
+                        <div class="glass-icon bg-orange-500/20">
+                            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <span class="text-orange-400 text-sm font-medium">Currently serving</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Debug Information -->
+            <div class="glass-card mb-4" style="background: rgba(255, 0, 0, 0.1);">
+                <h3 class="text-white font-bold mb-2">Debug Info:</h3>
+                <p class="text-white/80 text-sm">Total Orders: {{ orders_by_status.pending.count|add:orders_by_status.in_progress.count|add:orders_by_status.completed.count|add:orders_by_status.cancelled.count }}</p>
+                <p class="text-white/80 text-sm">Pending: {{ orders_by_status.pending.count }}</p>
+                <p class="text-white/80 text-sm">In Progress: {{ orders_by_status.in_progress.count }}</p>
+                <p class="text-white/80 text-sm">Completed: {{ orders_by_status.completed.count }}</p>
+                <p class="text-white/80 text-sm">Cancelled: {{ orders_by_status.cancelled.count }}</p>
+            </div>
+
+            <!-- Latest Orders Section -->
+            <div class="glass-card mb-8" data-aos="fade-up" data-aos-delay="500">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center space-x-3">
+                        <div class="glass-icon-small bg-indigo-500/20">
+                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <span>Latest Orders</span>
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button onclick="filterOrders('all')" class="glass-filter-btn active">All</button>
+                        <button onclick="filterOrders('pending')" class="glass-filter-btn">Pending</button>
+                        <button onclick="filterOrders('in_progress')" class="glass-filter-btn">In Progress</button>
+                        <button onclick="filterOrders('completed')" class="glass-filter-btn">Completed</button>
+                    </div>
+                </div>
+                
+                                 <div id="latest-orders" class="space-y-4">
+                     {% for order in orders_by_status.pending|slice:":5" %}
+                     <div class="glass-order-card" data-aos="fade-left" data-aos-delay="{{ forloop.counter|add:5 }}">
+                         {% include 'order_card.html' %}
+                     </div>
+                     {% endfor %}
+                     {% for order in orders_by_status.in_progress|slice:":3" %}
+                     <div class="glass-order-card" data-aos="fade-left" data-aos-delay="{{ forloop.counter|add:10 }}">
+                         {% include 'order_card.html' %}
+                     </div>
+                     {% endfor %}
+                 </div>
+            </div>
+
+            <!-- Live Orders Kanban Board -->
+            <div class="glass-card" data-aos="fade-up" data-aos-delay="600">
+                <h2 class="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+                    <div class="glass-icon-small bg-emerald-500/20">
+                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    <span>Live Order Management</span>
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <!-- Pending Orders -->
+                    <div class="glass-column">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
+                                <span>Pending</span>
+                            </h3>
+                            <span class="glass-badge bg-yellow-500/20 text-yellow-400">{{ orders_by_status.pending.count }}</span>
+                        </div>
+                                                 <div id="pending-orders" class="space-y-3">
+                             {% for order in orders_by_status.pending %}
+                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
+                                 {% include 'order_card.html' %}
+                             </div>
+                             {% endfor %}
+                         </div>
+                    </div>
+
+                    <!-- In Progress Orders -->
+                    <div class="glass-column">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+                                <span>In Progress</span>
+                            </h3>
+                            <span class="glass-badge bg-blue-500/20 text-blue-400">{{ orders_by_status.in_progress.count }}</span>
+                        </div>
+                                                 <div id="inprogress-orders" class="space-y-3">
+                             {% for order in orders_by_status.in_progress %}
+                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
+                                 {% include 'order_card.html' %}
+                             </div>
+                             {% endfor %}
+                         </div>
+                    </div>
+
+                    <!-- Completed Orders -->
+                    <div class="glass-column">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
+                                <span>Completed</span>
+                            </h3>
+                            <span class="glass-badge bg-emerald-500/20 text-emerald-400">{{ orders_by_status.completed.count }}</span>
+                        </div>
+                                                 <div id="completed-orders" class="space-y-3">
+                             {% for order in orders_by_status.completed %}
+                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
+                                 {% include 'order_card.html' %}
+                             </div>
+                             {% endfor %}
+                         </div>
+                    </div>
+
+                    <!-- Cancelled Orders -->
+                    <div class="glass-column">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <span>Cancelled</span>
+                            </h3>
+                            <span class="glass-badge bg-red-500/20 text-red-400">{{ orders_by_status.cancelled.count }}</span>
+                        </div>
+                                                 <div id="cancelled-orders" class="space-y-3">
+                             {% for order in orders_by_status.cancelled %}
+                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
+                                 {% include 'order_card.html' %}
+                             </div>
+                             {% endfor %}
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Bottom Navbar (iOS Dynamic Island Style) -->
+    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+        <div class="glass-navbar">
+            <div class="flex items-center space-x-6 px-6 py-3">
+                <button onclick="window.location.href='/panel/dashboard/'" class="nav-item active">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="window.location.href='/panel/ice-creams/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                    <span>Menu</span>
+                </button>
+                <button onclick="window.location.href='/panel/tables/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span>Tables</span>
+                </button>
+                <button onclick="window.location.href='/panel/logout/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div id="security-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="glass-modal">
+            <div class="text-center">
+                <div class="glass-icon-large bg-red-500/20 mx-auto mb-4">
+                    <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-2">Security Confirmation</h3>
+                <p class="text-white/60 mb-6">This action will permanently delete all orders. This cannot be undone.</p>
+                <div class="flex space-x-3">
+                    <button onclick="closeSecurityModal()" class="glass-button-secondary">Cancel</button>
+                    <button onclick="confirmClearAllOrders()" class="glass-button-danger">Delete All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AOS Library for Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <style>
+        /* Glassmorphism Styles */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .stats-card:hover::before {
+            left: 100%;
+        }
+
+        .glass-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-icon-small {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-icon-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-button-primary {
+            background: rgba(99, 102, 241, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-primary:hover {
+            background: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .glass-button-danger {
+            background: rgba(239, 68, 68, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            space-x: 2;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .glass-button-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .glass-button-secondary {
+            background: rgba(156, 163, 175, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(156, 163, 175, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .glass-button-secondary:hover {
+            background: rgba(156, 163, 175, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .glass-filter-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .glass-filter-btn:hover,
+        .glass-filter-btn.active {
+            background: rgba(99, 102, 241, 0.3);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .glass-order-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-order-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-column {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .glass-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-select {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-select:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .glass-button-small {
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-button-small:hover {
+            transform: scale(1.1);
+        }
+
+        .glass-navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            space-y: 1;
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        /* Floating Orbs Animation */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 100px;
+            height: 100px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 150px;
+            height: 150px;
+            top: 20%;
+            right: 10%;
+            animation-delay: 1s;
+        }
+
+        .orb-3 {
+            width: 80px;
+            height: 80px;
+            bottom: 20%;
+            left: 20%;
+            animation-delay: 2s;
+        }
+
+        .orb-4 {
+            width: 120px;
+            height: 120px;
+            bottom: 10%;
+            right: 20%;
+            animation-delay: 3s;
+        }
+
+        .orb-5 {
+            width: 60px;
+            height: 60px;
+            top: 50%;
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+
+<script>
+    // Initialize AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true
+    });
+
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getDatabase, ref, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDX7bLWxiqYsGnouo1SxlQR_Ffn4Mqh7Lo",
-        authDomain: "ice-cream-shop-69592.firebaseapp.com",
-        projectId: "ice-cream-shop-69592",
-        storageBucket: "ice-cream-shop-69592.appspot.com",
-        messagingSenderId: "392338402302",
-        appId: "1:392338402302:web:bb0c3798317f5b9406eeaf"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app);
 
     const statusClasses = {
         'Pending': 'bg-yellow-400',
@@ -87,63 +658,97 @@
         'Cancelled': 'bg-red-500'
     };
 
-    onChildAdded(ref(database, 'orders'), (snapshot) => {
-        const order = snapshot.val();
-        
-        if (document.getElementById(`order-${order.id}`)) return;
+    // Firebase configuration with error handling
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDX7bLWxiqYsGnouo1SxlQR_Ffn4Mqh7Lo",
+            authDomain: "ice-cream-shop-69592.firebaseapp.com",
+            projectId: "ice-cream-shop-69592",
+            storageBucket: "ice-cream-shop-69592.appspot.com",
+            messagingSenderId: "392338402302",
+            appId: "1:392338402302:web:bb0c3798317f5b9406eeaf",
+            databaseURL: "https://ice-cream-shop-69592-default-rtdb.firebaseio.com/"
+        };
 
-        const orderCard = createOrderCard(order);
-        const containerId = `${order.status.toLowerCase().replace(' ', '')}-orders > div`;
-        document.querySelector(`#${containerId}`).prepend(orderCard);
-    });
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-    onValue(ref(database, 'orders'), (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            const order = childSnapshot.val();
-            const orderElement = document.getElementById(`order-${order.id}`);
-            if (orderElement) {
-                const statusSelect = orderElement.querySelector('select');
-                const statusBadge = orderElement.querySelector('span');
+        // Firebase real-time listeners with enhanced animations
+        onChildAdded(ref(database, 'orders'), (snapshot) => {
+            const order = snapshot.val();
+            if (document.getElementById(`order-${order.id}`)) return;
+            
+            const orderCard = createOrderCard(order);
+            const containerId = `${order.status.toLowerCase().replace(' ', '')}-orders`;
+            const container = document.getElementById(containerId);
+            
+            if (container) {
+                orderCard.style.opacity = '0';
+                orderCard.style.transform = 'translateY(30px) scale(0.9)';
+                container.prepend(orderCard);
                 
-                statusSelect.value = order.status.toLowerCase().replace(' ', '_');
-                statusBadge.textContent = order.status;
-                
-                Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
-                statusBadge.classList.add(statusClasses[order.status]);
-
-                // Move card to new column if status changed
-                const newContainerId = `${order.status.toLowerCase().replace(' ', '')}-orders > div`;
-                const newContainer = document.querySelector(`#${newContainerId}`);
-                if (orderElement.parentElement !== newContainer) {
-                    newContainer.prepend(orderElement);
-                }
+                // Enhanced animate in
+                setTimeout(() => {
+                    orderCard.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    orderCard.style.opacity = '1';
+                    orderCard.style.transform = 'translateY(0) scale(1)';
+                }, 100);
             }
         });
-    });
+
+        onValue(ref(database, 'orders'), (snapshot) => {
+            snapshot.forEach((childSnapshot) => {
+                const order = childSnapshot.val();
+                const orderElement = document.getElementById(`order-${order.id}`);
+                if (orderElement) {
+                    const statusSelect = orderElement.querySelector('select');
+                    const statusBadge = orderElement.querySelector('span');
+                    
+                    statusSelect.value = order.status.toLowerCase().replace(' ', '_');
+                    statusBadge.textContent = order.status;
+                    
+                    Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
+                    statusBadge.classList.add(statusClasses[order.status]);
+                }
+            });
+        });
+
+        console.log("Firebase connected successfully");
+    } catch (error) {
+        console.log("Firebase connection failed:", error);
+        console.log("Using manual refresh mode");
+    }
 
     function createOrderCard(order) {
         const orderElement = document.createElement('div');
-        orderElement.className = 'bg-surface p-4 rounded-lg shadow-md border border-cardBorder';
+        orderElement.className = 'glass-order-card';
         orderElement.id = `order-${order.id}`;
 
         let itemsHtml = '';
-        if (order.items) {
-            for (const item of order.items) {
-                itemsHtml += `<li class="text-textSecondary">${item.quantity} x ${item.name}</li>`;
-            }
+        if (order.items && order.items.length > 0) {
+            itemsHtml = order.items.map(item => 
+                `<li class="text-white/80 text-sm">${item.quantity} x ${item.name}</li>`
+            ).join('');
         }
 
         orderElement.innerHTML = `
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-lg font-semibold text-textPrimary">Order #${order.id}</h3>
-                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-lg font-semibold text-white">Order #${order.id}</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
+                    <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-300 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <p class="text-textSecondary mb-2">Table: ${order.table}</p>
-            <p class="text-textSecondary text-sm mb-3">Time: ${new Date(order.created_at).toLocaleTimeString()}</p>
-            <ul class="mb-3">
+            <p class="text-white/80 mb-2">Table: ${order.table}</p>
+            <p class="text-white/60 text-sm mb-3">Time: ${new Date(order.created_at).toLocaleTimeString()}</p>
+            <ul class="mb-3 space-y-1">
                 ${itemsHtml}
             </ul>
-            <select onchange="updateStatus('${order.id}', this.value)" class="w-full bg-background border border-cardBorder rounded-md px-3 py-2 text-textPrimary focus:ring-primary focus:border-primary">
+            <select onchange="updateStatus('${order.id}', this.value)" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all backdrop-blur-sm">
                 <option value="pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
                 <option value="in_progress" ${order.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                 <option value="completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
@@ -154,6 +759,14 @@
     }
 
     function updateStatus(orderId, status) {
+        const orderElement = document.getElementById(`order-${orderId}`);
+        if (orderElement) {
+            orderElement.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                orderElement.style.transform = 'scale(1)';
+            }, 150);
+        }
+
         fetch('/panel/order/' + orderId + '/update/', {
             method: 'POST',
             headers: {
@@ -170,6 +783,93 @@
         });
     }
 
+    function filterOrders(status) {
+        const orderCards = document.querySelectorAll('.glass-order-card');
+        const filterBtns = document.querySelectorAll('.glass-filter-btn');
+        
+        // Update active button
+        filterBtns.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        orderCards.forEach(card => {
+            const statusBadge = card.querySelector('span');
+            if (status === 'all' || statusBadge.textContent.toLowerCase().includes(status.replace('_', ' '))) {
+                card.style.display = 'block';
+                card.style.animation = 'fadeIn 0.5s ease';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function refreshOrders() {
+        const button = event.target.closest('button');
+        button.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+            location.reload();
+        }, 300);
+    }
+
+    function clearAllOrders() {
+        document.getElementById('security-modal').classList.remove('hidden');
+    }
+
+    function closeSecurityModal() {
+        document.getElementById('security-modal').classList.add('hidden');
+    }
+
+    function confirmClearAllOrders() {
+        fetch('/panel/orders/clear/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                closeSecurityModal();
+                location.reload();
+            } else {
+                alert('Failed to clear orders: ' + data.message);
+            }
+        });
+    }
+
+    function deleteOrder(orderId) {
+        if (confirm('Are you sure you want to delete this order?')) {
+            const orderElement = document.getElementById(`order-${orderId}`);
+            if (orderElement) {
+                orderElement.style.transform = 'scale(0.8)';
+                orderElement.style.opacity = '0';
+                setTimeout(() => {
+                    fetch('/panel/order/' + orderId + '/delete/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            orderElement.remove();
+                        } else {
+                            alert('Failed to delete order: ' + data.message);
+                            orderElement.style.transform = 'scale(1)';
+                            orderElement.style.opacity = '1';
+                        }
+                    });
+                }, 300);
+            }
+        }
+    }
+
     window.updateStatus = updateStatus;
+    window.clearAllOrders = clearAllOrders;
+    window.deleteOrder = deleteOrder;
+    window.refreshOrders = refreshOrders;
+    window.filterOrders = filterOrders;
+    window.closeSecurityModal = closeSecurityModal;
+    window.confirmClearAllOrders = confirmClearAllOrders;
 </script>
 {% endblock %} 
