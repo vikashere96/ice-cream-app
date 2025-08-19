@@ -17,10 +17,38 @@ from django.db.models import Count, Sum, F
 def order_page(request, token):
     table = get_object_or_404(Table, token=token)
     ice_creams = IceCream.objects.all()
+    customer_name = request.session.get('customer_name')
+    customer_picture = request.session.get('customer_picture')
     return render(request, 'order_page.html', {
         'table': table,
         'ice_creams': ice_creams,
+        'customer_name': customer_name,
+        'customer_picture': customer_picture,
     })
+from django.views.decorators.csrf import csrf_exempt
+import requests
+# Google login endpoint for customer
+@csrf_exempt
+def customer_google_login(request):
+    import json
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        token = data.get('credential')
+        # Verify token with Google
+        google_response = requests.get(f'https://oauth2.googleapis.com/tokeninfo?id_token={token}')
+        if google_response.status_code == 200:
+            info = google_response.json()
+            name = info.get('name')
+            picture = info.get('picture')
+            email = info.get('email')
+            # Store in session
+            request.session['customer_name'] = name
+            request.session['customer_picture'] = picture
+            request.session['customer_email'] = email
+            return JsonResponse({'success': True, 'name': name, 'picture': picture, 'email': email})
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid token'}, status=400)
+    return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
 
 def submit_order(request):
     if request.method == 'POST':
@@ -39,7 +67,7 @@ def submit_order(request):
                 quantity=item['quantity']
             )
         
-        # Push to Firebase
+        # Prepare order payload for Firebase and status URL
         order_data = {
             'id': order.id,
             'table': order.table.number,
@@ -47,6 +75,7 @@ def submit_order(request):
             'created_at': order.created_at.isoformat(),
             'items': [{'quantity': item.quantity, 'name': item.ice_cream.name} for item in order.items.all()]
         }
+        status_url = reverse('order_status', kwargs={'order_id': order.id})
         try:
             db.reference(f'orders/{order.id}').set(order_data)
             print(f"Order {order.id} synced to Firebase successfully")
@@ -55,7 +84,6 @@ def submit_order(request):
             # Continue without Firebase - order is still saved in Django database
             return JsonResponse({'status': 'success', 'order_id': order.id, 'status_url': status_url})
         
-        status_url = reverse('order_status', kwargs={'order_id': order.id})
         return JsonResponse({'status': 'success', 'order_id': order.id, 'status_url': status_url})
     return JsonResponse({'status': 'error'}, status=400)
 
@@ -207,6 +235,11 @@ def delete_table(request, pk):
 def clear_all_orders(request):
     if request.method == 'POST':
         Order.objects.all().delete()
+        # Also clear Firebase orders
+        try:
+            db.reference('orders').delete()
+        except Exception as e:
+            print(f'Firebase clear_all_orders error: {e}')
         return JsonResponse({'status': 'success', 'message': 'All orders cleared successfully'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
@@ -216,11 +249,50 @@ def delete_order(request, order_id):
         try:
             order = Order.objects.get(id=order_id)
             order.delete()
+            # Also delete from Firebase if exists
+            try:
+                db.reference(f'orders/{order_id}').delete()
+            except Exception as e:
+                print(f'Firebase delete_order error for {order_id}: {e}')
             return JsonResponse({'status': 'success', 'message': 'Order deleted successfully'})
         except Order.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Order not found'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def order_success(request):
-    order_id = request.GET.get('order_id', '12345')  # Get order_id from URL parameter
-    return render(request, 'order_success.html', {'order_id': order_id})
+    from django.utils import timezone
+    order_id = request.GET.get('order_id')
+    order = None
+    items = []
+    total = 0
+    can_order_again = True
+    cooldown_seconds = 120  # 2 minutes
+    cooldown_remaining = 0
+
+    if order_id:
+        try:
+            order = Order.objects.get(id=order_id)
+            items = order.items.select_related('ice_cream').all()
+            total = order.get_total_amount()
+        except Order.DoesNotExist:
+            order = None
+
+    # Restrict re-ordering for 2 minutes using session
+    last_order_time = request.session.get('last_order_time')
+    now = timezone.now().timestamp()
+    if last_order_time:
+        elapsed = now - last_order_time
+        if elapsed < cooldown_seconds:
+            can_order_again = False
+            cooldown_remaining = int(cooldown_seconds - elapsed)
+    # Set last_order_time for this order
+    request.session['last_order_time'] = now
+
+    return render(request, 'order_success.html', {
+        'order_id': order_id,
+        'order': order,
+        'items': items,
+        'total': total,
+        'can_order_again': can_order_again,
+        'cooldown_remaining': cooldown_remaining,
+    })

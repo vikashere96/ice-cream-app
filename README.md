@@ -48,11 +48,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> **Note:** If `requirements.txt` is missing, install Django and Firebase Admin SDK:
-> ```
-> pip install django firebase-admin qrcode pillow
-> ```
-
 ### 4. Firebase Setup
 
 - Place your `firebase-service-account-key.json` in the project root.
@@ -81,7 +76,7 @@ python manage.py createsuperuser
 ### 8. Run the Development Server
 
 ```bash
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 127.0.0.1:8000
 ```
 
 - Access the app at `http://localhost:8000/` or your server’s IP.
@@ -92,6 +87,21 @@ python manage.py runserver 0.0.0.0:8000
 
 - **Customer:** Scan the QR code at your table, select ice creams, and place your order.
 - **Admin:** Log in at `/panel/login/` to manage orders, tables, and menu items.
+
+### Ngrok (recommended for mobile testing)
+
+```bash
+ngrok http 8000
+# then auto-update all QR codes to current tunnel URL
+python manage.py update_all_tables_qr_url --auto-ngrok
+```
+
+If ngrok is not running locally, set the URL manually:
+```bash
+set SITE_BASE_URL=https://your-subdomain.ngrok-free.app  # Windows CMD
+$env:SITE_BASE_URL="https://your-subdomain.ngrok-free.app"  # PowerShell
+python manage.py update_all_tables_qr_url --base-url %SITE_BASE_URL%
+```
 
 ---
 
@@ -109,6 +119,26 @@ python manage.py runserver 0.0.0.0:8000
 
 - **Design:** Modify templates in `qr_ordering/templates/` and styles in `static/`.
 - **Animations:** Enhance UI/UX with additional CSS or JS as needed.
+
+---
+
+## Requirements
+
+See `requirements.txt` for pinned versions. Install via:
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Troubleshooting
+
+- If orders appear in the admin but don’t disappear when deleted, clear Firebase orders: Admin panel now deletes from both DB and Firebase. Use “Clear All” if needed.
+- If QR codes show old URLs, regenerate with:
+```bash
+python manage.py update_all_tables_qr_url --auto-ngrok
+```
+- Add additional hosts with the `ALLOWED_HOSTS` env var (comma-separated).
 
 ---
 

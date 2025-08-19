@@ -14,7 +14,8 @@ class IceCreamForm(forms.ModelForm):
 class TableForm(forms.ModelForm):
     class Meta:
         model = Table
-        fields = ['number']
+        fields = ['number', 'qr_base_url']
         widgets = {
             'number': forms.NumberInput(attrs={'class': 'w-full px-4 py-2 bg-background border border-cardBorder rounded-md focus:ring-primary focus:border-primary'}),
-        } 
+            'qr_base_url': forms.URLInput(attrs={'class': 'w-full px-4 py-2 bg-background border border-cardBorder rounded-md focus:ring-primary focus:border-primary', 'placeholder': 'https://yourdomain.com'}),
+        }

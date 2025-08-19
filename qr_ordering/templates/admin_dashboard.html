@@ -1,15 +1,7 @@
 {% extends 'admin_base.html' %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-    <!-- Animated Background Elements -->
-    <div class="absolute inset-0 overflow-hidden">
-        <div class="floating-orb orb-1"></div>
-        <div class="floating-orb orb-2"></div>
-        <div class="floating-orb orb-3"></div>
-        <div class="floating-orb orb-4"></div>
-        <div class="floating-orb orb-5"></div>
-    </div>
+<div class="min-h-screen bg-slate-900">
 
     <!-- Main Content -->
     <div class="relative z-10 min-h-screen">
@@ -115,15 +107,7 @@
                 </div>
             </div>
 
-            <!-- Debug Information -->
-            <div class="glass-card mb-4" style="background: rgba(255, 0, 0, 0.1);">
-                <h3 class="text-white font-bold mb-2">Debug Info:</h3>
-                <p class="text-white/80 text-sm">Total Orders: {{ orders_by_status.pending.count|add:orders_by_status.in_progress.count|add:orders_by_status.completed.count|add:orders_by_status.cancelled.count }}</p>
-                <p class="text-white/80 text-sm">Pending: {{ orders_by_status.pending.count }}</p>
-                <p class="text-white/80 text-sm">In Progress: {{ orders_by_status.in_progress.count }}</p>
-                <p class="text-white/80 text-sm">Completed: {{ orders_by_status.completed.count }}</p>
-                <p class="text-white/80 text-sm">Cancelled: {{ orders_by_status.cancelled.count }}</p>
-            </div>
+            
 
             <!-- Latest Orders Section -->
             <div class="glass-card mb-8" data-aos="fade-up" data-aos-delay="500">
@@ -133,7 +117,7 @@
                             <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                        </div>
+    </div>
                         <span>Latest Orders</span>
                     </h2>
                     <div class="flex space-x-2">
@@ -141,21 +125,17 @@
                         <button onclick="filterOrders('pending')" class="glass-filter-btn">Pending</button>
                         <button onclick="filterOrders('in_progress')" class="glass-filter-btn">In Progress</button>
                         <button onclick="filterOrders('completed')" class="glass-filter-btn">Completed</button>
-                    </div>
+    </div>
+</div>
+
+                <div id="latest-orders" class="space-y-4">
+                    {% for order in orders_by_status.pending|slice:":5" %}
+                        {% include 'order_card.html' %}
+                    {% endfor %}
+                    {% for order in orders_by_status.in_progress|slice:":3" %}
+                        {% include 'order_card.html' %}
+                    {% endfor %}
                 </div>
-                
-                                 <div id="latest-orders" class="space-y-4">
-                     {% for order in orders_by_status.pending|slice:":5" %}
-                     <div class="glass-order-card" data-aos="fade-left" data-aos-delay="{{ forloop.counter|add:5 }}">
-                         {% include 'order_card.html' %}
-                     </div>
-                     {% endfor %}
-                     {% for order in orders_by_status.in_progress|slice:":3" %}
-                     <div class="glass-order-card" data-aos="fade-left" data-aos-delay="{{ forloop.counter|add:10 }}">
-                         {% include 'order_card.html' %}
-                     </div>
-                     {% endfor %}
-                 </div>
             </div>
 
             <!-- Live Orders Kanban Board -->
@@ -169,8 +149,8 @@
                     <span>Live Order Management</span>
                 </h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <!-- Pending Orders -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Pending Orders -->
                     <div class="glass-column">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
@@ -179,16 +159,14 @@
                             </h3>
                             <span class="glass-badge bg-yellow-500/20 text-yellow-400">{{ orders_by_status.pending.count }}</span>
                         </div>
-                                                 <div id="pending-orders" class="space-y-3">
-                             {% for order in orders_by_status.pending %}
-                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
-                                 {% include 'order_card.html' %}
-                             </div>
-                             {% endfor %}
-                         </div>
-                    </div>
+                        <div id="pending-orders" class="space-y-3">
+            {% for order in orders_by_status.pending %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+                        </div>
+    </div>
 
-                    <!-- In Progress Orders -->
+    <!-- In Progress Orders -->
                     <div class="glass-column">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
@@ -197,16 +175,14 @@
                             </h3>
                             <span class="glass-badge bg-blue-500/20 text-blue-400">{{ orders_by_status.in_progress.count }}</span>
                         </div>
-                                                 <div id="inprogress-orders" class="space-y-3">
-                             {% for order in orders_by_status.in_progress %}
-                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
-                                 {% include 'order_card.html' %}
-                             </div>
-                             {% endfor %}
-                         </div>
-                    </div>
+                        <div id="inprogress-orders" class="space-y-3">
+            {% for order in orders_by_status.in_progress %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+                        </div>
+    </div>
 
-                    <!-- Completed Orders -->
+    <!-- Completed Orders -->
                     <div class="glass-column">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
@@ -215,16 +191,14 @@
                             </h3>
                             <span class="glass-badge bg-emerald-500/20 text-emerald-400">{{ orders_by_status.completed.count }}</span>
                         </div>
-                                                 <div id="completed-orders" class="space-y-3">
-                             {% for order in orders_by_status.completed %}
-                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
-                                 {% include 'order_card.html' %}
-                             </div>
-                             {% endfor %}
-                         </div>
-                    </div>
+                        <div id="completed-orders" class="space-y-3">
+            {% for order in orders_by_status.completed %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+                        </div>
+    </div>
 
-                    <!-- Cancelled Orders -->
+    <!-- Cancelled Orders -->
                     <div class="glass-column">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
@@ -233,13 +207,11 @@
                             </h3>
                             <span class="glass-badge bg-red-500/20 text-red-400">{{ orders_by_status.cancelled.count }}</span>
                         </div>
-                                                 <div id="cancelled-orders" class="space-y-3">
-                             {% for order in orders_by_status.cancelled %}
-                             <div class="glass-order-card" data-aos="zoom-in" data-aos-delay="{{ forloop.counter }}">
-                                 {% include 'order_card.html' %}
-                             </div>
-                             {% endfor %}
-                         </div>
+                        <div id="cancelled-orders" class="space-y-3">
+            {% for order in orders_by_status.cancelled %}
+                {% include 'order_card.html' %}
+            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -294,9 +266,9 @@
                     <button onclick="closeSecurityModal()" class="glass-button-secondary">Cancel</button>
                     <button onclick="confirmClearAllOrders()" class="glass-button-danger">Delete All</button>
                 </div>
-            </div>
         </div>
     </div>
+</div>
 
     <!-- AOS Library for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -305,77 +277,53 @@
     <style>
         /* Glassmorphism Styles */
         .glass-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: #0f172a; /* slate-900 */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 20px;
+            transition: background 0.2s ease;
         }
 
         .glass-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.08);
         }
 
-        .stats-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .stats-card:hover::before {
-            left: 100%;
-        }
+        .stats-card { position: relative; overflow: hidden; }
+        .stats-card::before { content: none; }
 
         .glass-icon {
-            width: 60px;
-            height: 60px;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-icon-small {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .glass-icon-large {
+            width: 72px;
+            height: 72px;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .glass-icon-small {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .glass-icon-large {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .glass-button-primary {
@@ -455,47 +403,49 @@
         }
 
         .glass-order-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
             padding: 16px;
-            transition: all 0.3s ease;
+            transition: background 0.2s ease;
         }
 
         .glass-order-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.08);
         }
 
         .glass-column {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            min-height: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 360px;
         }
 
         .glass-badge {
             padding: 4px 8px;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 12px;
             font-weight: 600;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .glass-select {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background: rgba(15, 23, 42, 0.85); /* slate-900 with opacity */
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
             padding: 8px 12px;
             border-radius: 8px;
-            transition: all 0.3s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+        .glass-select option {
+            background: #0f172a; /* slate-900 */
+            color: #fff;
+        }
+        .glass-select optgroup { color: #fff; background: #0f172a; }
 
         .glass-select:focus {
             outline: none;
@@ -514,11 +464,10 @@
         }
 
         .glass-navbar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            box-shadow: none;
         }
 
         .nav-item {
@@ -552,62 +501,7 @@
             animation: modalSlideIn 0.3s ease;
         }
 
-        /* Floating Orbs Animation */
-        .floating-orb {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .orb-1 {
-            width: 100px;
-            height: 100px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 150px;
-            height: 150px;
-            top: 20%;
-            right: 10%;
-            animation-delay: 1s;
-        }
-
-        .orb-3 {
-            width: 80px;
-            height: 80px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 2s;
-        }
-
-        .orb-4 {
-            width: 120px;
-            height: 120px;
-            bottom: 10%;
-            right: 20%;
-            animation-delay: 3s;
-        }
-
-        .orb-5 {
-            width: 60px;
-            height: 60px;
-            top: 50%;
-            left: 50%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
-            }
-            50% {
-                transform: translateY(-20px) rotate(180deg);
-            }
-        }
+        /* Removed floating orb visuals */
 
         @keyframes modalSlideIn {
             from {
@@ -640,7 +534,7 @@
         }
     </style>
 
-<script>
+<script type="module">
     // Initialize AOS
     AOS.init({
         duration: 800,
@@ -674,11 +568,11 @@
         const database = getDatabase(app);
 
         // Firebase real-time listeners with enhanced animations
-        onChildAdded(ref(database, 'orders'), (snapshot) => {
-            const order = snapshot.val();
-            if (document.getElementById(`order-${order.id}`)) return;
-            
-            const orderCard = createOrderCard(order);
+    onChildAdded(ref(database, 'orders'), (snapshot) => {
+        const order = snapshot.val();
+        if (document.getElementById(`order-${order.id}`)) return;
+
+        const orderCard = createOrderCard(order);
             const containerId = `${order.status.toLowerCase().replace(' ', '')}-orders`;
             const container = document.getElementById(containerId);
             
@@ -694,21 +588,21 @@
                     orderCard.style.transform = 'translateY(0) scale(1)';
                 }, 100);
             }
-        });
+    });
 
-        onValue(ref(database, 'orders'), (snapshot) => {
-            snapshot.forEach((childSnapshot) => {
-                const order = childSnapshot.val();
-                const orderElement = document.getElementById(`order-${order.id}`);
-                if (orderElement) {
-                    const statusSelect = orderElement.querySelector('select');
-                    const statusBadge = orderElement.querySelector('span');
-                    
-                    statusSelect.value = order.status.toLowerCase().replace(' ', '_');
-                    statusBadge.textContent = order.status;
-                    
-                    Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
-                    statusBadge.classList.add(statusClasses[order.status]);
+    onValue(ref(database, 'orders'), (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+            const order = childSnapshot.val();
+            const orderElement = document.getElementById(`order-${order.id}`);
+            if (orderElement) {
+                const statusSelect = orderElement.querySelector('select');
+                const statusBadge = orderElement.querySelector('span');
+                
+                statusSelect.value = order.status.toLowerCase().replace(' ', '_');
+                statusBadge.textContent = order.status;
+                
+                Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
+                statusBadge.classList.add(statusClasses[order.status]);
                 }
             });
         });
@@ -735,7 +629,7 @@
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-lg font-semibold text-white">Order #${order.id}</h3>
                 <div class="flex items-center space-x-2">
-                    <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
+                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
                     <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-300 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -864,6 +758,7 @@
         }
     }
 
+    // Expose functions to global scope even in module context
     window.updateStatus = updateStatus;
     window.clearAllOrders = clearAllOrders;
     window.deleteOrder = deleteOrder;

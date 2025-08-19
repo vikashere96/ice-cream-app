@@ -32,7 +32,7 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-3">
-                        <button onclick="bulkGenerateQR()" class="glass-button-secondary">
+                        <button onclick="bulkRegenerateQR()" class="glass-button-secondary">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V6a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1zm12 0h2a1 1 0 001-1V6a1 1 0 00-1-1h-2a1 1 0 00-1 1v1a1 1 0 001 1zM5 20h2a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1a1 1 0 001 1z"></path>
                             </svg>
@@ -620,11 +620,11 @@
 
         function confirmDelete() {
             if (selectedTableId) {
-                window.location.href = `/panel/table/${selectedTableId}/delete/`;
+                window.location.href = `/panel/tables/delete/${selectedTableId}/`;
             }
         }
 
-        function bulkGenerateQR() {
+        function bulkRegenerateQR() {
             const selected = document.querySelectorAll('.bulk-select:checked');
             if (selected.length === 0) {
                 alert('Please select tables to generate QR codes for');
@@ -633,8 +633,8 @@
             
             if (confirm(`Generate QR codes for ${selected.length} selected tables?`)) {
                 const ids = Array.from(selected).map(cb => cb.value);
-                // Implement bulk QR generation
-                console.log('Bulk generate QR for tables:', ids);
+                // Not implemented server-side; show hint to use management command
+                alert('Use: python manage.py update_all_tables_qr_url --base-url https://<your-ngrok>.ngrok-free.app');
             }
         }
 
@@ -644,6 +644,9 @@
                 closeQRPreview();
             }
         });
+
+        // Expose to window for inline onClick
+        window.bulkRegenerateQR = bulkRegenerateQR;
 
         document.getElementById('delete-modal').addEventListener('click', function(e) {
             if (e.target === this) {

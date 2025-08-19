@@ -139,24 +139,24 @@
                         </div>
                     </div>
                 </div>
-            </div>
+</div>
 
             <!-- Ice Creams Grid -->
             <div class="glass-card">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="iceCreamGrid">
-                    {% for ice_cream in ice_creams %}
+            {% for ice_cream in ice_creams %}
                     <div class="glass-ice-cream-card" data-name="{{ ice_cream.name|lower }}" data-price="{{ ice_cream.price }}">
                         <div class="relative">
-                            {% if ice_cream.image %}
+                    {% if ice_cream.image %}
                                 <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" 
                                      class="w-full h-48 object-cover rounded-t-xl">
-                            {% else %}
+                    {% else %}
                                 <div class="w-full h-48 bg-gradient-to-br from-purple-400 to-pink-400 rounded-t-xl flex items-center justify-center">
                                     <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                     </svg>
                                 </div>
-                            {% endif %}
+                    {% endif %}
                             <div class="absolute top-3 right-3">
                                 <input type="checkbox" class="bulk-select glass-checkbox" value="{{ ice_cream.id }}">
                             </div>
@@ -203,7 +203,7 @@
                             <span>Add First Ice Cream</span>
                         </a>
                     </div>
-                    {% endfor %}
+            {% endfor %}
                 </div>
             </div>
         </div>
@@ -259,7 +259,7 @@
                 </div>
             </div>
         </div>
-    </div>
+</div>
 
     <style>
         /* Glassmorphism Styles */

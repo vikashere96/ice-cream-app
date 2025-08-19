@@ -26,7 +26,15 @@ SECRET_KEY = 'django-insecure-uok6*#cvhol^1h(^r@djka%jcq700v9j795^icu$tzd^$qpd0r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.29.118', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    '127.0.0.1', 'localhost', '192.168.29.118', 'testserver',
+    '.ngrok-free.app', '.ngrok.io', '.ngrok.app'
+]
+
+# Allow extending ALLOWED_HOSTS via environment (comma-separated)
+_extra_hosts = os.environ.get('ALLOWED_HOSTS', '')
+if _extra_hosts:
+    ALLOWED_HOSTS += [h.strip() for h in _extra_hosts.split(',') if h.strip()]
 
 
 # Application definition
@@ -99,6 +107,24 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "https://localhost",
+    "https://127.0.0.1",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.io",
+    "https://*.ngrok.app",
+]
+
+# Allow extending CSRF_TRUSTED_ORIGINS via environment (comma-separated full origins)
+_extra_csrf = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if _extra_csrf:
+    CSRF_TRUSTED_ORIGINS += [o.strip() for o in _extra_csrf.split(',') if o.strip()]
+
+# Base site URL used to generate absolute QR code URLs (override in env for ngrok)
+SITE_BASE_URL = os.environ.get('SITE_BASE_URL', 'http://127.0.0.1:8000')
 
 
 # Internationalization

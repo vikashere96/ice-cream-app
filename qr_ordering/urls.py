@@ -5,6 +5,7 @@ urlpatterns = [
     # Customer facing
     path('table/<str:token>/', views.order_page, name='order_page'),
     path('order/submit/', views.submit_order, name='submit_order'),
+    path('customer/google-login/', views.customer_google_login, name='customer_google_login'),
     path('order/status/<int:order_id>/', views.order_status, name='order_status'),
     path('order/success/', views.order_success, name='order_success'),
 
