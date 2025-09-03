@@ -36,6 +36,53 @@
 
     <!-- Menu Grid -->
     <div id="menu" class="container mx-auto px-4 pb-28">
+        <!-- Personalize Section -->
+        <div class="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-5 mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold">Personalize your scoop</h3>
+                <button id="clearPrefs" class="text-xs text-white/70 hover:text-white" onclick="clearPreferences()">Clear</button>
+            </div>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div>
+                    <div class="text-sm text-white/70 mb-2">Mood</div>
+                    <div class="flex flex-wrap gap-2" id="pref-mood">
+                        <button class="chip" data-group="mood" data-value="happy">😊 Happy</button>
+                        <button class="chip" data-group="mood" data-value="stressed">😵 Stressed</button>
+                        <button class="chip" data-group="mood" data-value="adventurous">🤠 Adventurous</button>
+                        <button class="chip" data-group="mood" data-value="celebrating">🎉 Celebrating</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-sm text-white/70 mb-2">Flavors you like (multi-select)</div>
+                    <div class="flex flex-wrap gap-2" id="pref-flavor">
+                        <button class="chip" data-group="flavor" data-value="fruity">🍓 Fruity</button>
+                        <button class="chip" data-group="flavor" data-value="nutty">🥜 Nutty</button>
+                        <button class="chip" data-group="flavor" data-value="floral">🌸 Floral</button>
+                        <button class="chip" data-group="flavor" data-value="minty">🌿 Minty</button>
+                        <button class="chip" data-group="flavor" data-value="rich">🍫 Rich & creamy</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-sm text-white/70 mb-2">Weather & vibe</div>
+                    <div class="flex flex-wrap gap-2" id="pref-vibe">
+                        <button class="chip" data-group="vibe" data-value="hot">☀️ Hot day</button>
+                        <button class="chip" data-group="vibe" data-value="light">🕊️ Light</button>
+                        <button class="chip" data-group="vibe" data-value="classic">⭐ Classic</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+                <div class="text-sm text-white/70">We’ll suggest based on your choices</div>
+                <button class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 transition" onclick="computeSuggestions()">Suggest for me</button>
+            </div>
+        </div>
+
+        <!-- Suggestions Row -->
+        <div id="suggestions" class="hidden mb-6">
+            <h4 class="text-md font-semibold mb-3">Recommended for you</h4>
+            <div id="suggestion-cards" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        </div>
+
         <h2 class="text-2xl font-semibold mb-4">Popular Flavors</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for ice_cream in ice_creams %}
@@ -146,6 +193,9 @@
     </div>
     <style>
     /* Hero floating orbs */
+    /* Chips */
+    .chip { padding:6px 10px; border-radius:9999px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); font-size:14px; }
+    .chip.active { background:rgba(99,102,241,.25); border-color:rgba(99,102,241,.5); }
     .floating-orb { position:absolute; border-radius:50%; filter: blur(8px); opacity:.6; }
     .orb-1 { width:160px; height:160px; left:10%; top:10%; background: radial-gradient(circle at 30% 30%, rgba(99,102,241,.5), rgba(168,85,247,.25)); animation: float 8s ease-in-out infinite; }
     .orb-2 { width:220px; height:220px; right:15%; top:20%; background: radial-gradient(circle at 30% 30%, rgba(236,72,153,.5), rgba(59,130,246,.25)); animation: float 10s ease-in-out infinite 1s; }
@@ -200,6 +250,7 @@
         let cart = {};
         let sliding = false;
         let slideData = null;
+        const preferences = { mood: new Set(), flavor: new Set(), vibe: new Set() };
 
         function scrollToMenu() {
             document.getElementById('menu').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -264,6 +315,111 @@
             // Refresh cart content if open
             const modal = document.getElementById('cart-modal');
             if (!modal.classList.contains('hidden')) toggleCartModal(), toggleCartModal();
+        }
+
+        // Preferences UI
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.chip');
+            if (!btn) return;
+            const group = btn.dataset.group; const value = btn.dataset.value;
+            if (group === 'mood') { // single-select for mood
+                document.querySelectorAll('#pref-mood .chip').forEach(c=>c.classList.remove('active'));
+                preferences.mood.clear();
+                btn.classList.add('active'); preferences.mood.add(value);
+            } else { // multi-select
+                if (btn.classList.contains('active')) { btn.classList.remove('active'); preferences[group].delete(value); }
+                else { btn.classList.add('active'); preferences[group].add(value); }
+            }
+        });
+
+        function clearPreferences() {
+            ['pref-mood','pref-flavor','pref-vibe'].forEach(id=>document.querySelectorAll(`#${id} .chip`).forEach(c=>c.classList.remove('active')));
+            preferences.mood.clear(); preferences.flavor.clear(); preferences.vibe.clear();
+            document.getElementById('suggestions').classList.add('hidden');
+            document.getElementById('suggestion-cards').innerHTML = '';
+        }
+
+        function computeSuggestions() {
+            // Simple rule-based scoring using flavor keywords in names
+            const flavorTags = {
+                fruity: [/mango/i, /straw|berry/i],
+                nutty: [/pista|pistach/i, /kesar/i],
+                floral: [/gulkand/i, /paan/i, /rose/i],
+                minty: [/mint/i, /paan/i],
+                rich: [/kesar|pista|choco|chocolate|cream/i]
+            };
+            const moodBoost = {
+                happy: { fruity: 2, rich: 1 },
+                stressed: { floral: 2, rich: 2 },
+                adventurous: { floral: 2, minty: 2 },
+                celebrating: { rich: 3 }
+            };
+            const vibeBoost = { hot: { fruity: 2, minty: 2 }, light: { fruity: 2, floral: 1 }, classic: { rich: 2, nutty: 1 } };
+
+            // Build a list from DOM (name, price, id, image)
+            const cards = Array.from(document.querySelectorAll('#menu .grid > div'));
+            const products = cards.map(card => {
+                const img = card.querySelector('img');
+                const name = card.querySelector('h3, h2')?.textContent?.trim() || card.querySelector('h2')?.textContent?.trim();
+                const priceText = card.querySelector('div.relative .absolute, .px-3.py-1')?.textContent || card.querySelector('div .absolute')?.textContent || '';
+                const priceMatch = priceText.match(/([0-9]+(?:\.[0-9]+)?)/);
+                const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                const addBtn = card.querySelector('button[onclick^="addToCart("]');
+                const idMatch = addBtn?.getAttribute('onclick')?.match(/addToCart\('\s*([^']+)/);
+                const id = idMatch ? idMatch[1] : null;
+                return { id, name, price, image: img?.src || '', el: card };
+            }).filter(p => p.id);
+
+            const mood = Array.from(preferences.mood)[0];
+            const fl = Array.from(preferences.flavor);
+            const vb = Array.from(preferences.vibe);
+
+            const scores = products.map(p => {
+                let score = 0;
+                // base tags from name
+                for (const [tag, regs] of Object.entries(flavorTags)) {
+                    if (regs.some(r => r.test(p.name))) score += 1;
+                }
+                // user flavor prefs
+                fl.forEach(tag => { if (flavorTags[tag]?.some(r=>r.test(p.name))) score += 2; });
+                // mood boost
+                if (mood && moodBoost[mood]) {
+                    for (const [tag, boost] of Object.entries(moodBoost[mood])) {
+                        if (flavorTags[tag]?.some(r=>r.test(p.name))) score += boost;
+                    }
+                }
+                // vibe boost
+                vb.forEach(v => {
+                    const boosts = vibeBoost[v] || {};
+                    for (const [tag, boost] of Object.entries(boosts)) {
+                        if (flavorTags[tag]?.some(r=>r.test(p.name))) score += boost;
+                    }
+                });
+                return { ...p, score };
+            });
+
+            scores.sort((a,b)=>b.score-a.score);
+            const top = scores.slice(0,3).filter(s=>s.score>0);
+            const wrap = document.getElementById('suggestion-cards');
+            wrap.innerHTML = '';
+            if (top.length === 0) {
+                document.getElementById('suggestions').classList.add('hidden');
+                return;
+            }
+            top.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'rounded-xl bg-white/5 border border-white/10 p-3 flex items-center gap-3';
+                div.innerHTML = `
+                    <img src="${s.image}" alt="${s.name}" class="w-16 h-16 object-cover rounded-lg" />
+                    <div class="flex-1">
+                        <div class="font-semibold">${s.name}</div>
+                        <div class="text-sm text-white/70">₹${s.price.toFixed(2)}</div>
+                    </div>
+                    <button class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500" onclick="addToCart('${s.id}','${s.name.replace(/'/g,"\'")}','${s.price}')">Add</button>
+                `;
+                wrap.appendChild(div);
+            });
+            document.getElementById('suggestions').classList.remove('hidden');
         }
 
         function startSlide(e) {
