@@ -3,50 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Ice Cream Shop Admin{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}Admin Panel{% endblock %} - Ice Cream Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1D4ED8',
-                        secondary: '#FACC15',
-                        accent: '#10B981',
-                        background: '#F9FAFB',
-                        surface: '#FFFFFF',
-                        textPrimary: '#111827',
-                        textSecondary: '#6B7280',
-                        success: '#22C55E',
-                        warning: '#F59E0B',
-                        danger: '#EF4444',
-                        info: '#3B82F6',
-                        cardBorder: '#E5E7EB'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    borderRadius: {
-                        'sm': '0.125rem',
-                        'md': '0.375rem',
-                        'lg': '0.5rem',
-                        'xl': '0.75rem',
-                        'full': '9999px'
-                    }
-                }
-            }
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar-item:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-    </script>
+        .active-sidebar-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
-<body class="bg-background text-textPrimary font-sans">
-    {% if user.is_authenticated %}
-    <!-- Removed top navbar for full-screen dashboard -->
-    {% endif %}
-    <main class="w-full h-full">
-        {% block content %}{% endblock %}
-    </main>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 gradient-bg text-white flex-shrink-0">
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-8">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-ice-cream text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Ice Cream Shop</h1>
+                        <p class="text-white/70 text-sm">Admin Panel</p>
+                    </div>
+                </div>
+                
+                <nav class="space-y-2">
+                    <a href="{% url 'admin_dashboard' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'admin_dashboard' %}active-sidebar-item{% endif %}">
+                        <i class="fas fa-chart-line w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_analytics' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'admin_analytics' %}active-sidebar-item{% endif %}">
+                        <i class="fas fa-chart-bar w-5"></i>
+                        <span>Analytics</span>
+                    </a>
+                    
+                    <div class="pt-2 pb-2">
+                        <p class="text-white/50 text-xs uppercase tracking-wider px-3 mb-2">Management</p>
+                        
+                        <a href="{% url 'manage_ice_creams' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name in 'manage_ice_creams,add_ice_cream,edit_ice_cream' %}active-sidebar-item{% endif %}">
+                            <i class="fas fa-ice-cream w-5"></i>
+                            <span>Ice Creams</span>
+                        </a>
+                        
+                        <a href="{% url 'manage_tables' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name in 'manage_tables,add_table,edit_table' %}active-sidebar-item{% endif %}">
+                            <i class="fas fa-table w-5"></i>
+                            <span>Tables</span>
+                        </a>
+                        
+                        <a href="{% url 'refund_list' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'refund_list' %}active-sidebar-item{% endif %}">
+                            <i class="fas fa-undo w-5"></i>
+                            <span>Refunds</span>
+                        </a>
+                    </div>
+                    
+                    <div class="pt-2 pb-2">
+                        <p class="text-white/50 text-xs uppercase tracking-wider px-3 mb-2">System</p>
+                        
+                        <a href="{% url 'admin_settings' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'admin_settings' %}active-sidebar-item{% endif %}">
+                            <i class="fas fa-cog w-5"></i>
+                            <span>Settings</span>
+                        </a>
+                    </div>
+                </nav>
+            </div>
+            
+            <!-- User Info -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-white/10">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium">{{ user.username|default:'Admin' }}</p>
+                        <p class="text-white/70 text-xs">Administrator</p>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="text-white/70 hover:text-white transition">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <header class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h2>
+                        <p class="text-gray-600 text-sm">{% block page_description %}Welcome to your admin panel{% endblock %}</p>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <!-- Quick Actions -->
+                        <div class="flex items-center space-x-2">
+                            <button onclick="refreshData()" class="p-2 text-gray-400 hover:text-gray-600 transition">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            
+                            <div class="relative">
+                                <button class="p-2 text-gray-400 hover:text-gray-600 transition">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Time -->
+                        <div class="text-right">
+                            <p class="text-sm font-medium text-gray-800" id="current-time"></p>
+                            <p class="text-xs text-gray-500" id="current-date"></p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                {% block content %}
+                {% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString();
+            document.getElementById('current-date').textContent = now.toLocaleDateString();
+        }
+        
+        updateTime();
+        setInterval(updateTime, 1000);
+        
+        // Refresh data function
+        function refreshData() {
+            location.reload();
+        }
+        
+        // Auto-refresh every 30 seconds for dashboard
+        {% if request.resolver_match.url_name == 'admin_dashboard' %}
+        setInterval(refreshData, 30000);
+        {% endif %}
+    </script>
+    
+    {% block extra_js %}
+    {% endblock %}
 </body>
-</html> 
+</html>

@@ -1,0 +1,207 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-900">
+    <div class="relative z-10 min-h-screen pb-28">
+        <!-- Header Section -->
+        <div class="glass-header p-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <h1 class="text-2xl font-bold text-white">Refund Management</h1>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="window.location.href='/panel/dashboard/'" class="glass-button-secondary">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            <span>Back to Dashboard</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Refunds List -->
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="glass-card">
+                <h2 class="text-xl font-bold text-white mb-6">All Refunds</h2>
+                
+                {% if refunds %}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-white/10">
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Order #</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Customer</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Amount</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Reason</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Status</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Date</th>
+                                <th class="text-left text-white/80 font-medium py-3 px-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for refund in refunds %}
+                            <tr class="border-b border-white/5 hover:bg-white/5">
+                                <td class="py-4 px-4 text-white">#{{ refund.order.id }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="text-white">{{ refund.customer_name }}</div>
+                                    <div class="text-white/60 text-sm">{{ refund.customer_email }}</div>
+                                </td>
+                                <td class="py-4 px-4 text-white font-semibold">₹{{ refund.refund_amount }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="text-white">{{ refund.refund_reason }}</div>
+                                    <div class="text-white/60 text-sm">Bank Transfer (3-5 days)</div>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="glass-badge 
+                                        {% if refund.status == 'pending' %}bg-yellow-500/20 text-yellow-400
+                                        {% elif refund.status == 'processed' %}bg-emerald-500/20 text-emerald-400
+                                        {% elif refund.status == 'failed' %}bg-red-500/20 text-red-400
+                                        {% endif %}">
+                                        {{ refund.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-4 text-white/80">{{ refund.created_at|date:"M d, Y H:i" }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center space-x-2">
+                                        <select onchange="updateRefundStatus('{{ refund.id }}', this.value)" 
+                                                class="glass-select text-sm">
+                                            <option value="pending" {% if refund.status == 'pending' %}selected{% endif %}>Pending</option>
+                                            <option value="processed" {% if refund.status == 'processed' %}selected{% endif %}>Processed</option>
+                                            <option value="failed" {% if refund.status == 'failed' %}selected{% endif %}>Failed</option>
+                                        </select>
+                                        <button onclick="viewRefundDetails('{{ refund.id }}')" 
+                                                class="glass-button-small bg-blue-500/20 text-blue-400 hover:bg-blue-500/30">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <div class="glass-icon-large bg-gray-500/20 mx-auto mb-4">
+                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">No Refunds Found</h3>
+                    <p class="text-white/60">No refund requests have been processed yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.glass-header {
+    background: #0f172a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.glass-button-secondary {
+    background: rgba(156, 163, 175, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(156, 163, 175, 0.3);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.glass-button-secondary:hover {
+    background: rgba(156, 163, 175, 0.3);
+    transform: translateY(-2px);
+}
+
+.glass-select {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: border-color 0.2s ease;
+}
+
+.glass-select option {
+    background: #0f172a;
+    color: #fff;
+}
+
+.glass-badge {
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glass-button-small {
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.glass-icon-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+</style>
+
+<script>
+function updateRefundStatus(refundId, status) {
+    const formData = new FormData();
+    formData.append('status', status);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+    fetch(`/panel/refund/${refundId}/update/`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Error updating refund status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating refund status');
+    });
+}
+
+function viewRefundDetails(refundId) {
+    // You can implement a detailed view modal here
+    alert('Refund details view - to be implemented');
+}
+</script>
+
+{% csrf_token %}
+{% endblock %}

@@ -1,6 +1,23 @@
-Django==5.2.3
-firebase-admin==6.6.0
-qrcode==7.4.2
-Pillow==10.4.0
-requests==2.32.3
+# Django and core dependencies
+Django>=5.0.0
+Pillow>=10.0.0
 
+# Email and environment configuration
+python-dotenv>=1.0.0
+
+# Firebase integration
+firebase-admin>=6.0.0
+
+# HTTP requests for payment verification
+requests>=2.31.0
+
+# Development and testing
+python-decouple>=3.8
+
+# Optional: For production deployment
+gunicorn>=21.0.0
+whitenoise>=6.5.0
+
+# Optional: For enhanced security
+django-ratelimit>=4.1.0
+django-cors-headers>=4.3.0

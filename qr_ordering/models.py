@@ -103,17 +103,47 @@ class Table(models.Model):
         except Exception as e:
             print(f"Error pushing Table data to Firebase: {e}")
 
+class EmailVerification(models.Model):
+    email = models.EmailField()
+    verification_code = models.CharField(max_length=6)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField()
+    
+    def __str__(self):
+        return f"Verification for {self.email}"
+    
+    def is_expired(self):
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+
 class Order(models.Model):
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
+        ('draft', 'Draft'),  # Order created but payment not initiated
+        ('pending_payment', 'Pending Payment'),
+        ('paid', 'Paid'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
     
+    PAYMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
     table = models.ForeignKey(Table, on_delete=models.CASCADE, related_name='orders')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    customer_email = models.EmailField(default='customer@example.com')
+    customer_name = models.CharField(max_length=100, default='Customer')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_payment')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=50, blank=True)
+    payment_reference = models.CharField(max_length=100, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Order {self.id} for Table {self.table.number}"
@@ -132,3 +162,32 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.quantity} x {self.ice_cream.name}"
+
+class Refund(models.Model):
+    REFUND_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processed', 'Processed'),
+        ('failed', 'Failed'),
+    ]
+    
+    PAYMENT_METHOD_CHOICES = [
+        ('cash', 'Cash'),
+        ('card', 'Card'),
+        ('upi', 'UPI'),
+        ('bank_transfer', 'Bank Transfer'),
+    ]
+    
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='refund')
+    customer_email = models.EmailField()
+    customer_name = models.CharField(max_length=100)
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='bank_transfer')
+    payment_details = models.TextField(blank=True, default="Refund will be processed to your original payment method")
+    refund_reason = models.TextField(blank=True, default="Item not available")
+    status = models.CharField(max_length=20, choices=REFUND_STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    admin_notes = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"Refund for Order #{self.order.id} - ₹{self.refund_amount}"

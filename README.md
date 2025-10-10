@@ -1,147 +1,186 @@
 # Ice Cream QR Ordering System
 
-## Project Overview
+A modern, full-featured QR code-based ordering system for ice cream shops with real-time admin dashboard, email verification, and payment integration.
 
-This project is a QR-based digital ordering system for ice cream parlors, built with Django. It allows customers to scan a QR code at their table, view the menu, and place orders directly from their mobile devices. The system features a real-time admin dashboard for managing orders, tables, and menu items, and integrates with Firebase for live order updates.
+## Features
 
-### Key Features
+### Customer Features
+- **QR Code Ordering** - Scan table QR codes to place orders
+- **Email Verification** - Secure email-based customer verification
+- **AI Recommendations** - Smart ice cream suggestions based on preferences
+- **Real-time Cart** - Dynamic cart with live total calculations
+- **Multiple Payment Options** - UPI and Razorpay integration
+- **Order Tracking** - Real-time order status updates
+- **Mobile Responsive** - Optimized for all devices
 
-- **QR Code Table Ordering:** Each table has a unique QR code. Scanning it opens a web page for that table, allowing customers to order ice cream.
-- **Dynamic Menu:** Customers can view available ice creams, including images and prices, and select quantities.
-- **Order Management:** Orders are tracked by table and status (Pending, In Progress, Completed, Cancelled).
-- **Admin Dashboard:** Staff can log in to view, update, and manage all orders, tables, and menu items.
-- **Real-Time Updates:** Order status changes are pushed to Firebase for instant updates.
-- **Table & Menu Management:** Admins can add, edit, or remove tables and ice cream menu items.
-- **QR Code Generation:** QR codes are automatically generated for each table and link to the ordering page.
+### Admin Features
+- **Modern Dashboard** - Real-time statistics and order management
+- **Advanced Analytics** - Day/month/year sales analysis with charts
+- **Ice Cream Management** - Add, edit, delete flavors with statistics
+- **Table Management** - QR code generation and table performance tracking
+- **Refund Management** - Process customer refunds with email notifications
+- **Settings Panel** - Comprehensive configuration management
+- **Email System** - Automated notifications and confirmations
 
-### Design & Animation
+### Technical Features
+- **Django Backend** - Robust Python web framework
+- **Firebase Integration** - Real-time database synchronization
+- **Gmail SMTP** - Professional email delivery
+- **Chart.js Analytics** - Interactive data visualizations
+- **Tailwind CSS** - Modern, responsive design
+- **Mobile-First** - Optimized for mobile devices
 
-- **Modern UI:** The frontend uses Tailwind CSS for a clean, responsive, and modern look.
-- **Order Cards:** Orders are displayed as animated cards with color-coded status badges.
-- **Smooth Transitions:** UI elements such as modals, dropdowns, and status changes use smooth CSS transitions for a polished user experience.
-- **Mobile-First:** The ordering page is optimized for mobile devices, ensuring a seamless experience for customers.
+## Quick Start
 
----
+### Prerequisites
+- Python 3.8+
+- Django 4.0+
+- Gmail account for SMTP
+- Firebase project (optional)
 
-## Setup Process
+### Installation
 
-### 1. Clone the Repository
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/vikashere96/ice-cream-app.git
+   cd ice-cream-app
+   ```
 
-```bash
-git clone https://github.com/vikashere96/ice-cream-app.git
-cd ice-cream-app
+2. **Create virtual environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+5. **Database setup**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   python manage.py createsuperuser
+   ```
+
+6. **Run the server**
+   ```bash
+   python manage.py runserver
+   ```
+
+## Configuration
+
+### Email Settings
+Configure Gmail SMTP in `.env`:
+```env
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
 ```
 
-### 2. Create and Activate a Virtual Environment
+### Payment Settings
+Configure payment gateways in admin settings:
+- **UPI**: Set your UPI ID in admin panel
+- **Razorpay**: Add API keys in settings
 
-```bash
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+### Firebase (Optional)
+For real-time features, add Firebase configuration:
+```env
+FIREBASE_CONFIG=path/to/firebase-service-account-key.json
 ```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Firebase Setup
-
-- Place your `firebase-service-account-key.json` in the project root.
-- Make sure your Firebase Realtime Database is set up and the credentials file is correct.
-
-### 5. Database Migration
-
-```bash
-python manage.py migrate
-```
-
-### 6. Seed Initial Data (Optional)
-
-To add sample ice creams and tables:
-
-```bash
-python manage.py seed_data
-```
-
-### 7. Create a Superuser (for admin access)
-
-```bash
-python manage.py createsuperuser
-```
-
-### 8. Run the Development Server
-
-```bash
-python manage.py runserver 127.0.0.1:8000
-```
-
-- Access the app at `http://localhost:8000/` or your server’s IP.
-
----
 
 ## Usage
 
-- **Customer:** Scan the QR code at your table, select ice creams, and place your order.
-- **Admin:** Log in at `/panel/login/` to manage orders, tables, and menu items.
+### For Customers
+1. **Scan QR Code** - Use phone camera to scan table QR code
+2. **Email Verification** - Enter email and verify with 6-digit code
+3. **Browse Menu** - View ice cream flavors with AI recommendations
+4. **Place Order** - Add items to cart and complete payment
+5. **Track Order** - Monitor order status in real-time
 
-### Ngrok (recommended for mobile testing)
+### For Admins
+1. **Access Admin Panel** - Visit `/panel/login/`
+2. **Dashboard** - View real-time statistics and manage orders
+3. **Analytics** - Analyze sales data with interactive charts
+4. **Management** - Manage ice creams, tables, and refunds
+5. **Settings** - Configure shop information and payment methods
 
-```bash
-ngrok http 8000
-# then auto-update all QR codes to current tunnel URL
-python manage.py update_all_tables_qr_url --auto-ngrok
+## Project Structure
+
+```
+ice-cream-app/
+├── icecream_qr/          # Django project settings
+├── qr_ordering/          # Main application
+│   ├── models.py         # Database models
+│   ├── views.py          # Business logic
+│   ├── urls.py           # URL routing
+│   ├── templates/        # HTML templates
+│   └── static/           # CSS, JS, images
+├── media/                # User uploads
+├── static/               # Static files
+├── requirements.txt      # Python dependencies
+├── manage.py            # Django management
+└── README.md            # This file
 ```
 
-If ngrok is not running locally, set the URL manually:
-```bash
-set SITE_BASE_URL=https://your-subdomain.ngrok-free.app  # Windows CMD
-$env:SITE_BASE_URL="https://your-subdomain.ngrok-free.app"  # PowerShell
-python manage.py update_all_tables_qr_url --base-url %SITE_BASE_URL%
-```
+## Security Features
 
----
+- **Email Verification** - Prevents spam orders
+- **CSRF Protection** - Secure form submissions
+- **Rate Limiting** - Prevents abuse
+- **Input Validation** - Sanitized user inputs
+- **Secure Payments** - Encrypted payment processing
 
-## Folder Structure
+## Deployment
 
-- `icecream_qr/` – Django project settings
-- `qr_ordering/` – Main app (models, views, templates)
-- `media/` – Uploaded images and generated QR codes
-- `static/` – Static files (CSS, JS)
-- `firebase-service-account-key.json` – Firebase credentials
+### Production Setup
+1. **Environment Variables** - Set production values in `.env`
+2. **Static Files** - Run `python manage.py collectstatic`
+3. **Database** - Use PostgreSQL for production
+4. **Web Server** - Deploy with Gunicorn + Nginx
+5. **SSL Certificate** - Enable HTTPS for security
 
----
+### Recommended Hosting
+- **Heroku** - Easy deployment with add-ons
+- **DigitalOcean** - VPS with full control
+- **AWS** - Scalable cloud infrastructure
+- **Railway** - Modern deployment platform
 
-## Customization
+## Contributing
 
-- **Design:** Modify templates in `qr_ordering/templates/` and styles in `static/`.
-- **Animations:** Enhance UI/UX with additional CSS or JS as needed.
-
----
-
-## Requirements
-
-See `requirements.txt` for pinned versions. Install via:
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Troubleshooting
-
-- If orders appear in the admin but don’t disappear when deleted, clear Firebase orders: Admin panel now deletes from both DB and Firebase. Use “Clear All” if needed.
-- If QR codes show old URLs, regenerate with:
-```bash
-python manage.py update_all_tables_qr_url --auto-ngrok
-```
-- Add additional hosts with the `ALLOWED_HOSTS` env var (comma-separated).
-
----
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-MIT License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- **Django** - Web framework
+- **Tailwind CSS** - Styling framework
+- **Chart.js** - Data visualization
+- **Firebase** - Real-time database
+- **Font Awesome** - Icons
+
+## Support
+
+For support and questions:
+- **GitHub Issues** - Report bugs and feature requests
+- **Email** - Contact the development team
+- **Documentation** - Check the wiki for detailed guides
+
+---
+
+**Built with love for ice cream lovers everywhere!**

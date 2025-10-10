@@ -1,0 +1,95 @@
+<div class="space-y-4">
+    <div class="text-center mb-6">
+        <div class="glass-icon-large bg-yellow-500/20 mx-auto mb-4">
+            <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-2">Process Refund</h3>
+        <p class="text-white/60">Order #{{ order.id }} - Total: ₹{{ order.get_total_amount }}</p>
+        <p class="text-white/50 text-sm mt-2">Reason: Item not available</p>
+    </div>
+    
+    <div class="bg-white/5 border border-white/10 rounded-lg p-4 mb-6">
+        <h4 class="text-white font-medium mb-3">Refund Details</h4>
+        
+        <div class="space-y-3">
+            <div class="flex justify-between">
+                <span class="text-white/70">Customer Name:</span>
+                <span class="text-white">{{ customer_name }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-white/70">Customer Email:</span>
+                <span class="text-white">{{ customer_email }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-white/70">Refund Amount:</span>
+                <span class="text-white font-semibold">₹{{ order.get_total_amount }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-white/70">Refund Method:</span>
+                <span class="text-white">Bank Account</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-white/70">Processing Time:</span>
+                <span class="text-white">3-5 Business Days</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mb-6">
+        <div class="flex items-start space-x-3">
+            <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <p class="text-blue-400 font-medium text-sm">Refund Information</p>
+                <p class="text-white/80 text-sm mt-1">The refund will be processed to the customer's original payment method within 3-5 business days. An email notification will be sent automatically.</p>
+            </div>
+        </div>
+    </div>
+    
+    <form id="refund-form" class="space-y-4">
+        {% csrf_token %}
+        <div class="flex space-x-3 pt-4">
+            <button type="button" onclick="closeRefundModal()" class="glass-button-secondary flex-1">
+                Cancel
+            </button>
+            <button type="submit" class="glass-button-primary flex-1">
+                Process Refund & Send Email
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.glass-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    width: 100%;
+    transition: border-color 0.2s ease;
+}
+
+.glass-input:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.glass-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.glass-icon-large {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+</style>

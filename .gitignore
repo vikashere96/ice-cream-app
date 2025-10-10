@@ -1,0 +1,101 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Environment variables
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Firebase
+firebase-service-account-key.json
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Debug files
+debug_*.py
+test_*.py
+check_*.py
+fix_*.py
+simulate_*.py
+configure_*.py
+enable_*.py
+setup_*.py
+
+# Documentation (except main README)
+*_GUIDE.md
+*_README.md
+*_FIXES.md
+*_TESTING.md
+*_INSTRUCTIONS.md
+*_SETUP.md
+*_DEBUG.md
+*_WORKING.md
+*_FIXED.md
+*_APPLIED.md
+*_REDESIGN.md
+*_TROUBLESHOOTING.md
+*_VERIFICATION.md
+*_PAYMENT.md
+*_SECURITY.md
+*_DASHBOARD.md
+*_REFUND.md
+*_ORDER.md
+*_EMAIL.md
+*_LOGIN.md
+*_PANEL.md
+*_CLIENT.md
+*_ADMIN.md
+
+# Test files
+test_*.html

@@ -241,6 +241,12 @@
                     </svg>
                     <span>Tables</span>
                 </button>
+                <button onclick="window.location.href='/panel/refunds/'" class="nav-item">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                    <span>Refunds</span>
+                </button>
                 <button onclick="openSettings()" class="nav-item" title="Settings">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35.45-.109.823-.39 1.065-.78.94-1.543 3.31-.826 2.37.718.45-.39.823-.671 1.274-.78z"/>
@@ -304,6 +310,22 @@
         </div>
     </div>
 </div>
+
+    <!-- Refund Modal -->
+    <div id="refund-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
+        <div class="glass-modal max-w-2xl w-full mx-4">
+            <div class="text-center mb-4">
+                <div class="glass-icon-large bg-yellow-500/20 mx-auto mb-4">
+                    <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                </div>
+            </div>
+            <div id="refund-form-container">
+                <!-- Refund form will be loaded here -->
+            </div>
+        </div>
+    </div>
 
     <!-- AOS Library for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -801,5 +823,116 @@
     window.filterOrders = filterOrders;
     window.closeSecurityModal = closeSecurityModal;
     window.confirmClearAllOrders = confirmClearAllOrders;
+
+    // Refund Modal Functions
+    let currentRefundOrderId = null;
+
+    function showRefundModal(orderId, orderTotal) {
+        currentRefundOrderId = orderId;
+        
+        // Load refund form
+        fetch(`/panel/order/${orderId}/refund/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('refund-form-container').innerHTML = data.form_html;
+                    document.getElementById('refund-modal').classList.remove('hidden');
+                    document.getElementById('refund-modal').classList.add('flex');
+                    
+                    // Setup form submission
+                    setupRefundForm();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading refund form:', error);
+                alert('Error loading refund form');
+            });
+    }
+
+    function closeRefundModal() {
+        document.getElementById('refund-modal').classList.add('hidden');
+        document.getElementById('refund-modal').classList.remove('flex');
+        currentRefundOrderId = null;
+    }
+
+    function setupRefundForm() {
+        const form = document.getElementById('refund-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                
+                fetch(`/panel/order/${currentRefundOrderId}/refund/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        closeRefundModal();
+                        alert(data.message);
+                        // Refresh the page to show updated order status
+                        location.reload();
+                    } else {
+                        alert('Error processing refund: ' + JSON.stringify(data.errors));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error processing refund:', error);
+                    alert('Error processing refund');
+                });
+            });
+        }
+    }
+
+    // Update the existing updateStatus function to handle refund popup
+    window.updateStatus = function(orderId, status) {
+        const formData = new FormData();
+        formData.append('status', status);
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+        fetch(`/panel/order/${orderId}/update/`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.show_refund_popup) {
+                    // Show refund popup for cancelled orders
+                    showRefundModal(data.order_id, data.order_total);
+                } else {
+                    // Regular status update - refresh page
+                    location.reload();
+                }
+            } else {
+                alert('Error updating order status');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating order status');
+        });
+    };
+
+    // Make functions globally available
+    window.showRefundModal = showRefundModal;
+    window.closeRefundModal = closeRefundModal;
+
+    // Add polling for real-time updates (disabled for now to fix loading issues)
+    function startPolling() {
+        // Auto-refresh disabled - use manual refresh button instead
+        console.log('Auto-refresh disabled. Use the Refresh button for updates.');
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Admin dashboard loaded successfully');
+        // Auto-refresh disabled for stability
+    });
 </script>
 {% endblock %} 

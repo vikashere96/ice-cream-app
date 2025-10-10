@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import IceCream, Table, Order, OrderItem
+from .models import IceCream, Table, Order, OrderItem, Refund, EmailVerification
 from django.utils.html import format_html
 import qrcode
 import io
@@ -17,7 +17,27 @@ class TableAdmin(admin.ModelAdmin):
         return "No QR Code"
     qr_code_thumbnail.short_description = "QR Code"
 
+class RefundAdmin(admin.ModelAdmin):
+    list_display = ('order', 'customer_name', 'customer_email', 'refund_amount', 'payment_method', 'status', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
+    search_fields = ('customer_name', 'customer_email', 'order__id')
+    readonly_fields = ('created_at',)
+
+class EmailVerificationAdmin(admin.ModelAdmin):
+    list_display = ('email', 'is_verified', 'created_at', 'verified_at', 'expires_at')
+    list_filter = ('is_verified', 'created_at')
+    search_fields = ('email',)
+    readonly_fields = ('created_at', 'verified_at')
+
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer_name', 'customer_email', 'table', 'status', 'payment_status', 'created_at', 'paid_at')
+    list_filter = ('status', 'payment_status', 'created_at')
+    search_fields = ('customer_name', 'customer_email', 'id')
+    readonly_fields = ('created_at', 'paid_at')
+
 admin.site.register(IceCream)
 admin.site.register(Table, TableAdmin)
-admin.site.register(Order)
+admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderItem)
+admin.site.register(Refund, RefundAdmin)
+admin.site.register(EmailVerification, EmailVerificationAdmin)

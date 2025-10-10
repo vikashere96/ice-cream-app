@@ -1,0 +1,609 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Analytics{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+{% block page_description %}Detailed analysis of sales, products, and performance{% endblock %}
+
+{% block content %}
+<!-- Time Period Selector -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+    <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-800">Analysis Period</h3>
+        <div class="flex space-x-2">
+            <button onclick="changePeriod('day')" id="day-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium transition hover:bg-blue-700">
+                Daily
+            </button>
+            <button onclick="changePeriod('month')" id="month-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition hover:bg-gray-300">
+                Monthly
+            </button>
+            <button onclick="changePeriod('year')" id="year-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition hover:bg-gray-300">
+                Yearly
+            </button>
+        </div>
+    </div>
+    
+    <div class="mt-4 flex items-center space-x-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+            <input type="date" id="from-date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+            <input type="date" id="to-date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+        </div>
+        <div class="pt-6">
+            <button onclick="updateAnalytics()" class="px-6 py-2 bg-green-600 text-white rounded-lg text-sm font-medium transition hover:bg-green-700">
+                Update Analysis
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Total Revenue</p>
+                <p class="text-3xl font-bold text-gray-800" id="total-revenue">${{ analytics.total_revenue|floatformat:2 }}</p>
+                <p class="text-green-600 text-sm mt-1" id="revenue-change">
+                    <i class="fas fa-arrow-up"></i> +15% vs previous period
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Total Orders</p>
+                <p class="text-3xl font-bold text-gray-800" id="total-orders">{{ analytics.total_orders }}</p>
+                <p class="text-blue-600 text-sm mt-1" id="orders-change">
+                    <i class="fas fa-arrow-up"></i> +8% vs previous period
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Average Order</p>
+                <p class="text-3xl font-bold text-gray-800" id="avg-order">${{ analytics.avg_order_value|floatformat:2 }}</p>
+                <p class="text-purple-600 text-sm mt-1" id="avg-change">
+                    <i class="fas fa-arrow-up"></i> +3% vs previous period
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Active Tables</p>
+                <p class="text-3xl font-bold text-gray-800" id="active-tables">{{ analytics.active_tables }}</p>
+                <p class="text-orange-600 text-sm mt-1" id="tables-change">
+                    <i class="fas fa-table"></i> Currently serving
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-utensils text-orange-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Revenue Trend -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Revenue Trend</h3>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span class="text-sm text-gray-600">Revenue</span>
+            </div>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="revenueTrendChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Orders Trend -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Orders Trend</h3>
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-sm text-gray-600">Orders</span>
+            </div>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="ordersTrendChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Product Analysis -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Top Products -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Top Products</h3>
+            <select id="product-period" class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                <option value="day">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+            </select>
+        </div>
+        
+        <div class="space-y-4" id="top-products">
+            {% for product in analytics.top_products %}
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-ice-cream text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800">{{ product.name }}</p>
+                        <p class="text-sm text-gray-500">{{ product.orders_count }} orders</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-gray-800">${{ product.revenue|floatformat:2 }}</p>
+                    <p class="text-sm text-gray-500">{{ product.percentage }}%</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Product Performance Chart -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Product Performance</h3>
+            <button onclick="toggleChartType()" id="chart-toggle" class="text-sm text-blue-600 hover:text-blue-800">
+                Switch to Bar Chart
+            </button>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="productChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Table Analysis -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Table Performance -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Table Performance</h3>
+            <select id="table-metric" class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                <option value="revenue">By Revenue</option>
+                <option value="orders">By Orders</option>
+                <option value="avg_order">By Avg Order</option>
+            </select>
+        </div>
+        
+        <div class="space-y-3" id="table-performance">
+            {% for table in analytics.table_performance %}
+            <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span class="text-sm font-medium text-gray-700">{{ table.number }}</span>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-800">Table {{ table.number }}</p>
+                        <p class="text-sm text-gray-500">{{ table.orders_count }} orders</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold text-gray-800">${{ table.revenue|floatformat:2 }}</p>
+                    <div class="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ table.percentage }}%"></div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Hourly Analysis -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Peak Hours</h3>
+            <div class="text-sm text-gray-500">Orders by hour</div>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-800">Export Data</h3>
+            <p class="text-gray-600 text-sm">Download analytics data for external analysis</p>
+        </div>
+        <div class="flex space-x-3">
+            <button onclick="exportData('csv')" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium transition hover:bg-green-700">
+                <i class="fas fa-file-csv mr-2"></i>Export CSV
+            </button>
+            <button onclick="exportData('pdf')" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium transition hover:bg-red-700">
+                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+            </button>
+            <button onclick="exportData('excel')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium transition hover:bg-blue-700">
+                <i class="fas fa-file-excel mr-2"></i>Export Excel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPeriod = 'day';
+let currentChartType = 'doughnut';
+
+// Initialize charts
+let revenueTrendChart, ordersTrendChart, productChart, hourlyChart;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    setDefaultDates();
+});
+
+function initializeCharts() {
+    // Revenue Trend Chart
+    const revenueCtx = document.getElementById('revenueTrendChart').getContext('2d');
+    revenueTrendChart = new Chart(revenueCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Revenue',
+                data: [1200, 1900, 3000, 5000, 2000, 3000],
+                borderColor: '#3B82F6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Orders Trend Chart
+    const ordersCtx = document.getElementById('ordersTrendChart').getContext('2d');
+    ordersTrendChart = new Chart(ordersCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Orders',
+                data: [65, 59, 80, 81, 56, 55],
+                backgroundColor: '#10B981',
+                borderRadius: 8,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+
+    // Product Chart
+    const productCtx = document.getElementById('productChart').getContext('2d');
+    productChart = new Chart(productCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Vanilla', 'Chocolate', 'Strawberry', 'Mint', 'Others'],
+            datasets: [{
+                data: [30, 25, 20, 15, 10],
+                backgroundColor: [
+                    '#3B82F6',
+                    '#8B5CF6',
+                    '#EC4899',
+                    '#10B981',
+                    '#F59E0B'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Hourly Chart
+    const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+    hourlyChart = new Chart(hourlyCtx, {
+        type: 'line',
+        data: {
+            labels: ['6AM', '8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM', '10PM'],
+            datasets: [{
+                label: 'Orders',
+                data: [2, 5, 12, 25, 18, 22, 35, 28, 15],
+                borderColor: '#F59E0B',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function changePeriod(period) {
+    currentPeriod = period;
+    
+    // Update button styles
+    document.querySelectorAll('[id$="-btn"]').forEach(btn => {
+        btn.className = 'px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition hover:bg-gray-300';
+    });
+    document.getElementById(period + '-btn').className = 'px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium transition hover:bg-blue-700';
+    
+    // Update charts based on period
+    updateChartsForPeriod(period);
+}
+
+function updateChartsForPeriod(period) {
+    let labels, revenueData, ordersData;
+    
+    switch(period) {
+        case 'day':
+            labels = ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'];
+            revenueData = [120, 190, 300, 500, 200, 300];
+            ordersData = [5, 8, 12, 20, 8, 12];
+            break;
+        case 'month':
+            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+            revenueData = [2400, 3800, 6000, 4000];
+            ordersData = [120, 190, 300, 200];
+            break;
+        case 'year':
+            labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+            revenueData = [28800, 45600, 72000, 48000];
+            ordersData = [1440, 2280, 3600, 2400];
+            break;
+    }
+    
+    // Update revenue chart
+    revenueTrendChart.data.labels = labels;
+    revenueTrendChart.data.datasets[0].data = revenueData;
+    revenueTrendChart.update();
+    
+    // Update orders chart
+    ordersTrendChart.data.labels = labels;
+    ordersTrendChart.data.datasets[0].data = ordersData;
+    ordersTrendChart.update();
+}
+
+function toggleChartType() {
+    const toggleBtn = document.getElementById('chart-toggle');
+    
+    if (currentChartType === 'doughnut') {
+        // Switch to bar chart
+        productChart.destroy();
+        const ctx = document.getElementById('productChart').getContext('2d');
+        productChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Vanilla', 'Chocolate', 'Strawberry', 'Mint', 'Others'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#3B82F6',
+                        '#8B5CF6',
+                        '#EC4899',
+                        '#10B981',
+                        '#F59E0B'
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        currentChartType = 'bar';
+        toggleBtn.textContent = 'Switch to Doughnut Chart';
+    } else {
+        // Switch to doughnut chart
+        productChart.destroy();
+        const ctx = document.getElementById('productChart').getContext('2d');
+        productChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Vanilla', 'Chocolate', 'Strawberry', 'Mint', 'Others'],
+                datasets: [{
+                    data: [30, 25, 20, 15, 10],
+                    backgroundColor: [
+                        '#3B82F6',
+                        '#8B5CF6',
+                        '#EC4899',
+                        '#10B981',
+                        '#F59E0B'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+        currentChartType = 'doughnut';
+        toggleBtn.textContent = 'Switch to Bar Chart';
+    }
+}
+
+function setDefaultDates() {
+    const today = new Date();
+    const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    
+    document.getElementById('from-date').value = lastWeek.toISOString().split('T')[0];
+    document.getElementById('to-date').value = today.toISOString().split('T')[0];
+}
+
+function updateAnalytics() {
+    const fromDate = document.getElementById('from-date').value;
+    const toDate = document.getElementById('to-date').value;
+    
+    if (!fromDate || !toDate) {
+        alert('Please select both from and to dates');
+        return;
+    }
+    
+    // Show loading state
+    const updateBtn = document.querySelector('button[onclick="updateAnalytics()"]');
+    const originalText = updateBtn.textContent;
+    updateBtn.textContent = 'Updating...';
+    updateBtn.disabled = true;
+    
+    // Simulate API call (replace with actual API call)
+    setTimeout(() => {
+        // Reset button
+        updateBtn.textContent = originalText;
+        updateBtn.disabled = false;
+        
+        // Update charts with new data
+        updateChartsForPeriod(currentPeriod);
+        
+        alert('Analytics updated successfully!');
+    }, 1000);
+}
+
+function exportData(format) {
+    const fromDate = document.getElementById('from-date').value;
+    const toDate = document.getElementById('to-date').value;
+    
+    if (!fromDate || !toDate) {
+        alert('Please select date range first');
+        return;
+    }
+    
+    // Create download link (replace with actual export functionality)
+    const link = document.createElement('a');
+    link.href = `/panel/analytics/export/?format=${format}&from=${fromDate}&to=${toDate}`;
+    link.download = `analytics_${fromDate}_to_${toDate}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}
