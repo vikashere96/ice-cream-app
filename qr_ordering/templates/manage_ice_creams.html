@@ -1,690 +1,158 @@
 {% extends 'admin_base.html' %}
 
-{% block title %}Manage Ice Creams{% endblock %}
+{% block title %}Ice Cream Management{% endblock %}
+{% block page_title %}Ice Cream Management{% endblock %}
+{% block page_description %}Manage your ice cream flavors and pricing{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-    <!-- Animated Background Elements -->
-    <div class="absolute inset-0 overflow-hidden">
-        <div class="floating-orb orb-1"></div>
-        <div class="floating-orb orb-2"></div>
-        <div class="floating-orb orb-3"></div>
-        <div class="floating-orb orb-4"></div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="relative z-10 min-h-screen pb-28">
-        <!-- Header Section -->
-        <div class="glass-header p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="glass-icon-small bg-purple-500/20">
-                                <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h1 class="text-2xl font-bold text-white">Manage Ice Creams</h1>
-                                <p class="text-white/60 text-sm">{{ ice_creams.count }} items in menu</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="bulkDelete()" class="glass-button-danger">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            <span>Bulk Delete</span>
-                        </button>
-                        <a href="{% url 'add_ice_cream' %}" class="glass-button-primary">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <span>Add Ice Cream</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
+<!-- Action Bar -->
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center space-x-4">
+        <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+            <span class="text-sm text-gray-600">Total Flavors: </span>
+            <span class="font-semibold text-gray-800">{{ ice_creams.count }}</span>
         </div>
-
-        <!-- Search and Filters -->
-        <div class="max-w-7xl mx-auto px-6 py-6">
-            <div class="glass-card mb-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <svg class="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                            </div>
-                            <input type="text" id="searchInput" placeholder="Search ice creams..." 
-                                   class="glass-input pl-10 w-full">
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <select id="priceFilter" class="glass-select">
-                            <option value="">All Prices</option>
-                            <option value="0-50">₹0 - ₹50</option>
-                            <option value="50-100">₹50 - ₹100</option>
-                            <option value="100-200">₹100 - ₹200</option>
-                            <option value="200+">₹200+</option>
-                        </select>
-                        <select id="sortBy" class="glass-select">
-                            <option value="name">Sort by Name</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="newest">Newest First</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-                <div class="glass-card stats-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Total Items</p>
-                            <p class="text-3xl font-bold text-white">{{ ice_creams.count }}</p>
-                        </div>
-                        <div class="glass-icon bg-blue-500/20">
-                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Average Price</p>
-                            <p class="text-3xl font-bold text-white">₹{{ avg_price|floatformat:0 }}</p>
-                        </div>
-                        <div class="glass-icon bg-emerald-500/20">
-                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">With Images</p>
-                            <p class="text-3xl font-bold text-white">{{ with_images_count }}</p>
-                        </div>
-                        <div class="glass-icon bg-purple-500/20">
-                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Most Expensive</p>
-                            <p class="text-2xl font-bold text-white">₹{{ max_price|floatformat:0 }}</p>
-                        </div>
-                        <div class="glass-icon bg-orange-500/20">
-                            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
+        <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+            <span class="text-sm text-gray-600">Active: </span>
+            <span class="font-semibold text-green-600">{{ ice_creams.count }}</span>
+        </div>
+    </div>
+    
+    <a href="{% url 'add_ice_cream' %}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center space-x-2">
+        <i class="fas fa-plus"></i>
+        <span>Add New Flavor</span>
+    </a>
 </div>
 
-            <!-- Ice Creams Grid -->
-            <div class="glass-card">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="iceCreamGrid">
-            {% for ice_cream in ice_creams %}
-                    <div class="glass-ice-cream-card" data-name="{{ ice_cream.name|lower }}" data-price="{{ ice_cream.price }}">
-                        <div class="relative">
-                    {% if ice_cream.image %}
-                                <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" 
-                                     class="w-full h-48 object-cover rounded-t-xl">
-                    {% else %}
-                                <div class="w-full h-48 bg-gradient-to-br from-purple-400 to-pink-400 rounded-t-xl flex items-center justify-center">
-                                    <svg class="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                    </svg>
-                                </div>
-                    {% endif %}
-                            <div class="absolute top-3 right-3">
-                                <input type="checkbox" class="bulk-select glass-checkbox" value="{{ ice_cream.id }}">
-                            </div>
-                            <div class="absolute top-3 left-3">
-                                <span class="glass-badge bg-emerald-500/20 text-emerald-400">₹{{ ice_cream.price }}</span>
-                            </div>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="text-lg font-semibold text-white mb-2">{{ ice_cream.name }}</h3>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-2">
-                                    <span class="text-white/60 text-sm">ID: {{ ice_cream.id }}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <a href="{% url 'edit_ice_cream' ice_cream.id %}" 
-                                       class="glass-button-small bg-blue-500/20 text-blue-400 hover:bg-blue-500/30">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                    </a>
-                                    <button onclick="deleteIceCream({{ ice_cream.id }}, '{{ ice_cream.name }}')" 
-                                            class="glass-button-small bg-red-500/20 text-red-400 hover:bg-red-500/30">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="col-span-full text-center py-12">
-                        <div class="glass-icon-large bg-purple-500/20 mx-auto mb-4">
-                            <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="text-xl font-semibold text-white mb-2">No Ice Creams Found</h3>
-                        <p class="text-white/60 mb-6">Start by adding your first ice cream to the menu</p>
-                        <a href="{% url 'add_ice_cream' %}" class="glass-button-primary">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                            <span>Add First Ice Cream</span>
-                        </a>
-                    </div>
-            {% endfor %}
+<!-- Ice Creams Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for ice_cream in ice_creams %}
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden card-hover transition-all duration-200">
+        <!-- Ice Cream Image -->
+        <div class="h-48 bg-gradient-to-br from-pink-100 to-blue-100 flex items-center justify-center">
+            {% if ice_cream.image %}
+                <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" class="w-full h-full object-cover">
+            {% else %}
+                <div class="text-center">
+                    <i class="fas fa-ice-cream text-6xl text-gray-300 mb-2"></i>
+                    <p class="text-sm text-gray-500">No Image</p>
                 </div>
-            </div>
+            {% endif %}
         </div>
-    </div>
-
-    <!-- Floating Bottom Navbar (with Settings) -->
-    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <div class="glass-navbar">
-            <div class="flex items-center space-x-6 px-6 py-3">
-                <button onclick="window.location.href='/panel/dashboard/'" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
-                    </svg>
-                    <span>Dashboard</span>
-                </button>
-                <button onclick="window.location.href='/panel/ice-creams/'" class="nav-item active">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
-                    <span>Menu</span>
-                </button>
-                <button onclick="window.location.href='/panel/tables/'" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                    </svg>
-                    <span>Tables</span>
-                </button>
-                <button onclick="openSettings()" class="nav-item" title="Settings">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35.45-.109.823-.39 1.065-.78.94-1.543 3.31-.826 2.37.718.45-.39.823-.671 1.274-.78z"/>
-                    </svg>
-                    <span>Settings</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Settings</h3>
-                <button class="text-white/70 hover:text-white" onclick="closeSettings()">✕</button>
-            </div>
-            <div class="space-y-5">
+        
+        <!-- Ice Cream Details -->
+        <div class="p-6">
+            <div class="flex items-start justify-between mb-3">
                 <div>
-                    <div class="text-sm text-white/70 mb-2">Theme</div>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="dark">Dark</button>
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="light">Light</button>
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="system">System</button>
-                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-1">{{ ice_cream.name }}</h3>
+                    <p class="text-2xl font-bold text-blue-600">₹{{ ice_cream.price }}</p>
                 </div>
-                <div>
-                    <div class="text-sm text-white/70 mb-2">Preferences</div>
-                    <label class="flex items-center justify-between bg-white/5 border border-white/10 rounded-md px-3 py-2 mb-2">
-                        <span>Compact layout</span>
-                        <input id="prefCompact" type="checkbox" class="h-4 w-4" />
-                    </label>
+                <div class="flex items-center space-x-1">
+                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span class="text-xs text-gray-500">Active</span>
                 </div>
-                <form method="post" action="/panel/logout/" class="pt-2 border-t border-white/10">
-                    {% csrf_token %}
-                    <button type="submit" class="mt-3 px-4 py-2 rounded-md bg-red-600 hover:bg-red-500">Logout</button>
-                </form>
+            </div>
+            
+            {% if ice_cream.description %}
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ ice_cream.description }}</p>
+            {% endif %}
+            
+            <!-- Stats -->
+            <div class="grid grid-cols-2 gap-4 mb-4 p-3 bg-gray-50 rounded-lg">
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Orders</p>
+                    <p class="font-semibold text-gray-800">{{ ice_cream.total_orders|default:0 }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Revenue</p>
+                    <p class="font-semibold text-gray-800">₹{{ ice_cream.total_revenue|default:0|floatformat:0 }}</p>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="flex space-x-2">
+                <a href="{% url 'edit_ice_cream' ice_cream.pk %}" 
+                   class="flex-1 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm font-medium transition text-center">
+                    <i class="fas fa-edit mr-1"></i>Edit
+                </a>
+                <button onclick="deleteIceCream({{ ice_cream.pk }}, '{{ ice_cream.name }}')" 
+                        class="flex-1 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-trash mr-1"></i>Delete
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="glass-modal">
-            <div class="text-center">
-                <div class="glass-icon-large bg-red-500/20 mx-auto mb-4">
-                    <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-white mb-2">Confirm Deletion</h3>
-                <p class="text-white/60 mb-6" id="delete-message">Are you sure you want to delete this ice cream?</p>
-                <div class="flex space-x-3">
-                    <button onclick="closeDeleteModal()" class="glass-button-secondary">Cancel</button>
-                    <button onclick="confirmDelete()" class="glass-button-danger">Delete</button>
-                </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-span-full">
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-ice-cream text-4xl text-gray-400"></i>
             </div>
+            <h3 class="text-lg font-medium text-gray-800 mb-2">No Ice Cream Flavors</h3>
+            <p class="text-gray-600 mb-6">Get started by adding your first ice cream flavor</p>
+            <a href="{% url 'add_ice_cream' %}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+                Add First Flavor
+            </a>
         </div>
+    </div>
+    {% endfor %}
 </div>
 
-    <style>
-        /* Glassmorphism Styles */
-        .glass-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
+<!-- Quick Stats -->
+{% if ice_creams %}
+<div class="mt-8 bg-white rounded-xl shadow-sm p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Statistics</h3>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Most Popular -->
+        <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg">
+            <i class="fas fa-star text-2xl text-yellow-500 mb-2"></i>
+            <h4 class="font-medium text-gray-800">Most Popular</h4>
+            <p class="text-sm text-gray-600">{{ most_popular.name|default:"No data" }}</p>
+        </div>
+        
+        <!-- Highest Revenue -->
+        <div class="text-center p-4 bg-gradient-to-br from-green-50 to-blue-50 rounded-lg">
+            <i class="fas fa-dollar-sign text-2xl text-green-500 mb-2"></i>
+            <h4 class="font-medium text-gray-800">Highest Revenue</h4>
+            <p class="text-sm text-gray-600">{{ highest_revenue.name|default:"No data" }}</p>
+        </div>
+        
+        <!-- Average Price -->
+        <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg">
+            <i class="fas fa-chart-line text-2xl text-purple-500 mb-2"></i>
+            <h4 class="font-medium text-gray-800">Average Price</h4>
+            <p class="text-sm text-gray-600">₹{{ average_price|floatformat:2|default:"0.00" }}</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .glass-ice-cream-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .glass-ice-cream-card:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .glass-input {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-input:focus {
-            outline: none;
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .glass-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .glass-select {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-select:focus {
-            outline: none;
-            border-color: rgba(99, 102, 241, 0.5);
-        }
-
-        .glass-button-primary {
-            background: rgba(99, 102, 241, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            space-x: 2;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .glass-button-primary:hover {
-            background: rgba(99, 102, 241, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .glass-button-danger {
-            background: rgba(239, 68, 68, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            space-x: 2;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .glass-button-danger:hover {
-            background: rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .glass-button-small {
-            padding: 6px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-button-small:hover {
-            transform: scale(1.1);
-        }
-
-        .glass-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .glass-checkbox {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            width: 18px;
-            height: 18px;
-        }
-
-        .glass-navbar {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            space-y: 1;
-            color: rgba(255, 255, 255, 0.7);
-            transition: all 0.3s ease;
-            padding: 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .glass-modal {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        .glass-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .glass-icon-large {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .glass-icon-small {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .stats-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .stats-card:hover::before {
-            left: 100%;
-        }
-
-        /* Floating Orbs Animation */
-        .floating-orb {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .orb-1 {
-            width: 100px;
-            height: 100px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .orb-2 {
-            width: 150px;
-            height: 150px;
-            top: 20%;
-            right: 10%;
-            animation-delay: 1s;
-        }
-
-        .orb-3 {
-            width: 80px;
-            height: 80px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 2s;
-        }
-
-        .orb-4 {
-            width: 120px;
-            height: 120px;
-            bottom: 10%;
-            right: 20%;
-            animation-delay: 3s;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px) rotate(0deg);
+{% block extra_js %}
+<script>
+function deleteIceCream(id, name) {
+    if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+        fetch(`/panel/ice-creams/delete/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
-            50% {
-                transform: translateY(-20px) rotate(180deg);
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to delete ice cream: ' + (data.error || 'Unknown error'));
             }
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-    </style>
-
-    <script>
-        // Settings controls (shared simple version)
-        function openSettings(){ document.getElementById('settingsModal').classList.remove('hidden'); }
-        function closeSettings(){ document.getElementById('settingsModal').classList.add('hidden'); }
-        let selectedIceCreamId = null;
-        let selectedIceCreamName = null;
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const cards = document.querySelectorAll('.glass-ice-cream-card');
-            
-            cards.forEach(card => {
-                const name = card.dataset.name;
-                if (name.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to delete ice cream');
         });
-
-        // Price filter
-        document.getElementById('priceFilter').addEventListener('change', function() {
-            const filterValue = this.value;
-            const cards = document.querySelectorAll('.glass-ice-cream-card');
-            
-            cards.forEach(card => {
-                const price = parseFloat(card.dataset.price);
-                let show = true;
-                
-                if (filterValue) {
-                    if (filterValue === '0-50') show = price >= 0 && price <= 50;
-                    else if (filterValue === '50-100') show = price > 50 && price <= 100;
-                    else if (filterValue === '100-200') show = price > 100 && price <= 200;
-                    else if (filterValue === '200+') show = price > 200;
-                }
-                
-                card.style.display = show ? 'block' : 'none';
-            });
-        });
-
-        // Sort functionality
-        document.getElementById('sortBy').addEventListener('change', function() {
-            const sortValue = this.value;
-            const grid = document.getElementById('iceCreamGrid');
-            const cards = Array.from(grid.children);
-            
-            cards.sort((a, b) => {
-                if (sortValue === 'name') {
-                    return a.dataset.name.localeCompare(b.dataset.name);
-                } else if (sortValue === 'price-low') {
-                    return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
-                } else if (sortValue === 'price-high') {
-                    return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
-                }
-                return 0;
-            });
-            
-            cards.forEach(card => grid.appendChild(card));
-        });
-
-        function deleteIceCream(id, name) {
-            selectedIceCreamId = id;
-            selectedIceCreamName = name;
-            document.getElementById('delete-message').textContent = `Are you sure you want to delete "${name}"?`;
-            document.getElementById('delete-modal').classList.remove('hidden');
-        }
-
-        function closeDeleteModal() {
-            document.getElementById('delete-modal').classList.add('hidden');
-            selectedIceCreamId = null;
-            selectedIceCreamName = null;
-        }
-
-        function confirmDelete() {
-            if (selectedIceCreamId) {
-                window.location.href = `/panel/ice-cream/${selectedIceCreamId}/delete/`;
-            }
-        }
-
-        function bulkDelete() {
-            const selected = document.querySelectorAll('.bulk-select:checked');
-            if (selected.length === 0) {
-                alert('Please select items to delete');
-                return;
-            }
-            
-            if (confirm(`Are you sure you want to delete ${selected.length} selected items?`)) {
-                const ids = Array.from(selected).map(cb => cb.value);
-                // Implement bulk delete functionality
-                console.log('Bulk delete:', ids);
-            }
-        }
-
-        // Auto-hide modal when clicking outside
-        document.getElementById('delete-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeDeleteModal();
-            }
-        });
-    </script>
-{% endblock %} 
+    }
+}
+</script>
+{% endblock %}

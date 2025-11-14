@@ -44,11 +44,6 @@
                         <span>Dashboard</span>
                     </a>
                     
-                    <a href="{% url 'admin_analytics' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'admin_analytics' %}active-sidebar-item{% endif %}">
-                        <i class="fas fa-chart-bar w-5"></i>
-                        <span>Analytics</span>
-                    </a>
-                    
                     <div class="pt-2 pb-2">
                         <p class="text-white/50 text-xs uppercase tracking-wider px-3 mb-2">Management</p>
                         
@@ -68,14 +63,7 @@
                         </a>
                     </div>
                     
-                    <div class="pt-2 pb-2">
-                        <p class="text-white/50 text-xs uppercase tracking-wider px-3 mb-2">System</p>
-                        
-                        <a href="{% url 'admin_settings' %}" class="sidebar-item flex items-center space-x-3 p-3 rounded-lg transition {% if request.resolver_match.url_name == 'admin_settings' %}active-sidebar-item{% endif %}">
-                            <i class="fas fa-cog w-5"></i>
-                            <span>Settings</span>
-                        </a>
-                    </div>
+
                 </nav>
             </div>
             

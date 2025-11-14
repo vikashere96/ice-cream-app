@@ -1,938 +1,601 @@
 {% extends 'admin_base.html' %}
 
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_description %}Overview of your ice cream shop performance{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-slate-900">
-
-    <!-- Main Content -->
-    <div class="relative z-10 min-h-screen pb-28">
-        <!-- Header Section -->
-        <div class="glass-header p-6">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-4 h-4 bg-emerald-400 rounded-full animate-pulse shadow-lg shadow-emerald-400/50"></div>
-                            <span class="text-white/80 text-sm font-medium">Live Dashboard</span>
-                        </div>
-                        <div class="w-px h-6 bg-white/20"></div>
-                        <div class="text-white/60 text-sm">Welcome back, <span class="font-semibold text-white">{{ user.username }}</span></div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <button onclick="refreshOrders()" class="glass-button-primary">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            <span>Refresh</span>
-                        </button>
-                        <button onclick="clearAllOrders()" class="glass-button-danger">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                            <span>Clear All</span>
-                        </button>
-                    </div>
-                </div>
+{% csrf_token %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Orders Today -->
+    <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Orders Today</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stats.total_orders_today }}</p>
+                <p class="text-green-600 text-sm mt-1">
+                    <i class="fas fa-arrow-up"></i> +12% from yesterday
+                </p>
             </div>
-        </div>
-
-        <!-- Stats Cards -->
-        <div class="max-w-7xl mx-auto px-6 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="100">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Today's Orders</p>
-                            <p class="text-4xl font-bold text-white">{{ stats.total_orders_today }}</p>
-                        </div>
-                        <div class="glass-icon bg-blue-500/20">
-                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <span class="text-emerald-400 text-sm font-medium">↑ 12% from yesterday</span>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Today's Revenue</p>
-                            <p class="text-4xl font-bold text-white">₹{{ stats.total_revenue_today|floatformat:0 }}</p>
-                        </div>
-                        <div class="glass-icon bg-emerald-500/20">
-                            <svg class="w-8 h-8 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <span class="text-emerald-400 text-sm font-medium">↑ 8% from yesterday</span>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Popular Flavor</p>
-                            <p class="text-2xl font-bold text-white">{{ stats.most_popular_ice_cream }}</p>
-                        </div>
-                        <div class="glass-icon bg-purple-500/20">
-                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <span class="text-purple-400 text-sm font-medium">Most ordered today</span>
-                    </div>
-                </div>
-
-                <div class="glass-card stats-card" data-aos="fade-up" data-aos-delay="400">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-white/60 text-sm font-medium">Active Tables</p>
-                            <p class="text-4xl font-bold text-white">{{ orders_by_status.pending.count|add:orders_by_status.in_progress.count }}</p>
-                        </div>
-                        <div class="glass-icon bg-orange-500/20">
-                            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <span class="text-orange-400 text-sm font-medium">Currently serving</span>
-                    </div>
-                </div>
-            </div>
-
-            
-
-            <!-- Latest Orders Section -->
-            <div class="glass-card mb-8" data-aos="fade-up" data-aos-delay="500">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-white flex items-center space-x-3">
-                        <div class="glass-icon-small bg-indigo-500/20">
-                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-    </div>
-                        <span>Latest Orders</span>
-                    </h2>
-                    <div class="flex space-x-2">
-                        <button onclick="filterOrders('all')" class="glass-filter-btn active">All</button>
-                        <button onclick="filterOrders('pending')" class="glass-filter-btn">Pending</button>
-                        <button onclick="filterOrders('in_progress')" class="glass-filter-btn">In Progress</button>
-                        <button onclick="filterOrders('completed')" class="glass-filter-btn">Completed</button>
-    </div>
-</div>
-
-                <div id="latest-orders" class="space-y-4">
-                    {% for order in orders_by_status.pending|slice:":5" %}
-                        {% include 'order_card.html' %}
-                    {% endfor %}
-                    {% for order in orders_by_status.in_progress|slice:":3" %}
-                        {% include 'order_card.html' %}
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Live Orders Kanban Board -->
-            <div class="glass-card" data-aos="fade-up" data-aos-delay="600">
-                <h2 class="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
-                    <div class="glass-icon-small bg-emerald-500/20">
-                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <span>Live Order Management</span>
-                </h2>
-                
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-    <!-- Pending Orders -->
-                    <div class="glass-column">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-yellow-400 rounded-full animate-pulse"></div>
-                                <span>Pending</span>
-                            </h3>
-                            <span class="glass-badge bg-yellow-500/20 text-yellow-400">{{ orders_by_status.pending.count }}</span>
-                        </div>
-                        <div id="pending-orders" class="space-y-3">
-            {% for order in orders_by_status.pending %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-                        </div>
-    </div>
-
-    <!-- In Progress Orders -->
-                    <div class="glass-column">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-                                <span>In Progress</span>
-                            </h3>
-                            <span class="glass-badge bg-blue-500/20 text-blue-400">{{ orders_by_status.in_progress.count }}</span>
-                        </div>
-                        <div id="inprogress-orders" class="space-y-3">
-            {% for order in orders_by_status.in_progress %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-                        </div>
-    </div>
-
-    <!-- Completed Orders -->
-                    <div class="glass-column">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-emerald-400 rounded-full"></div>
-                                <span>Completed</span>
-                            </h3>
-                            <span class="glass-badge bg-emerald-500/20 text-emerald-400">{{ orders_by_status.completed.count }}</span>
-                        </div>
-                        <div id="completed-orders" class="space-y-3">
-            {% for order in orders_by_status.completed %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-                        </div>
-    </div>
-
-    <!-- Cancelled Orders -->
-                    <div class="glass-column">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-white flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-red-400 rounded-full"></div>
-                                <span>Cancelled</span>
-                            </h3>
-                            <span class="glass-badge bg-red-500/20 text-red-400">{{ orders_by_status.cancelled.count }}</span>
-                        </div>
-                        <div id="cancelled-orders" class="space-y-3">
-            {% for order in orders_by_status.cancelled %}
-                {% include 'order_card.html' %}
-            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
             </div>
         </div>
     </div>
-
-    <!-- Floating Bottom Navbar (with Settings) -->
-    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-        <div class="glass-navbar">
-            <div class="flex items-center space-x-6 px-6 py-3">
-                <button onclick="window.location.href='/panel/dashboard/'" class="nav-item active">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
-                    </svg>
-                    <span>Dashboard</span>
-                </button>
-                <button onclick="window.location.href='/panel/ice-creams/'" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
-                    <span>Menu</span>
-                </button>
-                <button onclick="window.location.href='/panel/tables/'" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                    </svg>
-                    <span>Tables</span>
-                </button>
-                <button onclick="window.location.href='/panel/refunds/'" class="nav-item">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                    </svg>
-                    <span>Refunds</span>
-                </button>
-                <button onclick="openSettings()" class="nav-item" title="Settings">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35.45-.109.823-.39 1.065-.78.94-1.543 3.31-.826 2.37.718.45-.39.823-.671 1.274-.78z"/>
-                    </svg>
-                    <span>Settings</span>
-                </button>
+    
+    <!-- Revenue Today -->
+    <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Revenue Today</p>
+                <p class="text-3xl font-bold text-gray-800">₹{{ stats.total_revenue_today|floatformat:2 }}</p>
+                <p class="text-green-600 text-sm mt-1">
+                    <i class="fas fa-arrow-up"></i> +8% from yesterday
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
             </div>
         </div>
     </div>
-
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
-        <div class="w-full max-w-lg bg-slate-900 border border-white/10 rounded-2xl p-6 text-white">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold">Settings</h3>
-                <button class="text-white/70 hover:text-white" onclick="closeSettings()">✕</button>
+    
+    <!-- Popular Item -->
+    <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Popular Item</p>
+                <p class="text-lg font-bold text-gray-800">{{ stats.most_popular_ice_cream }}</p>
+                <p class="text-blue-600 text-sm mt-1">
+                    <i class="fas fa-star"></i> Best seller
+                </p>
             </div>
-            <div class="space-y-5">
-                <div>
-                    <div class="text-sm text-white/70 mb-2">Theme</div>
-                    <div class="flex items-center gap-2">
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="dark">Dark</button>
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="light">Light</button>
-                        <button class="px-3 py-2 rounded-md bg-white/10 border border-white/10" data-theme="system">System</button>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-sm text-white/70 mb-2">Preferences</div>
-                    <label class="flex items-center justify-between bg-white/5 border border-white/10 rounded-md px-3 py-2 mb-2">
-                        <span>Auto-refresh orders</span>
-                        <input id="prefAutoRefresh" type="checkbox" class="h-4 w-4" />
-                    </label>
-                    <label class="flex items-center justify-between bg-white/5 border border-white/10 rounded-md px-3 py-2">
-                        <span>Compact layout</span>
-                        <input id="prefCompact" type="checkbox" class="h-4 w-4" />
-                    </label>
-                </div>
-                <form method="post" action="/panel/logout/" class="pt-2 border-t border-white/10">
-                    {% csrf_token %}
-                    <button type="submit" class="mt-3 px-4 py-2 rounded-md bg-red-600 hover:bg-red-500">Logout</button>
-                </form>
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-ice-cream text-yellow-600 text-xl"></i>
             </div>
         </div>
     </div>
-
-    <!-- Security Modal -->
-    <div id="security-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="glass-modal">
-            <div class="text-center">
-                <div class="glass-icon-large bg-red-500/20 mx-auto mb-4">
-                    <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-semibold text-white mb-2">Security Confirmation</h3>
-                <p class="text-white/60 mb-6">This action will permanently delete all orders. This cannot be undone.</p>
-                <div class="flex space-x-3">
-                    <button onclick="closeSecurityModal()" class="glass-button-secondary">Cancel</button>
-                    <button onclick="confirmClearAllOrders()" class="glass-button-danger">Delete All</button>
-                </div>
+    
+    <!-- Active Tables -->
+    <div class="bg-white rounded-xl shadow-sm p-6 card-hover transition-all duration-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-500 text-sm font-medium">Active Tables</p>
+                <p class="text-3xl font-bold text-gray-800">{{ stats.active_tables|default:0 }}</p>
+                <p class="text-purple-600 text-sm mt-1">
+                    <i class="fas fa-table"></i> Currently serving
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-utensils text-purple-600 text-xl"></i>
+            </div>
         </div>
     </div>
 </div>
 
-    <!-- Refund Modal -->
-    <div id="refund-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden flex items-center justify-center z-50">
-        <div class="glass-modal max-w-2xl w-full mx-4">
-            <div class="text-center mb-4">
-                <div class="glass-icon-large bg-yellow-500/20 mx-auto mb-4">
-                    <svg class="w-12 h-12 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                    </svg>
-                </div>
-            </div>
-            <div id="refund-form-container">
-                <!-- Refund form will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- AOS Library for Animations -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
-    <style>
-        /* Glassmorphism Styles */
-        .glass-header {
-            background: #0f172a; /* slate-900 */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 14px;
-            padding: 20px;
-            transition: background 0.2s ease;
-        }
-
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .stats-card { position: relative; overflow: hidden; }
-        .stats-card::before { content: none; }
-
-        .glass-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .glass-icon-small {
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .glass-icon-large {
-            width: 72px;
-            height: 72px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .glass-button-primary {
-            background: rgba(99, 102, 241, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            space-x: 2;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .glass-button-primary:hover {
-            background: rgba(99, 102, 241, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
-        }
-
-        .glass-button-danger {
-            background: rgba(239, 68, 68, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            space-x: 2;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .glass-button-danger:hover {
-            background: rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
-        }
-
-        .glass-button-secondary {
-            background: rgba(156, 163, 175, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(156, 163, 175, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            flex: 1;
-        }
-
-        .glass-button-secondary:hover {
-            background: rgba(156, 163, 175, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .glass-filter-btn {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .glass-filter-btn:hover,
-        .glass-filter-btn.active {
-            background: rgba(99, 102, 241, 0.3);
-            border-color: rgba(99, 102, 241, 0.5);
-            transform: translateY(-1px);
-        }
-
-        .glass-order-card {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 16px;
-            transition: background 0.2s ease;
-        }
-
-        .glass-order-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .glass-column {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 16px;
-            min-height: 360px;
-        }
-
-        .glass-badge {
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .glass-select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background: rgba(15, 23, 42, 0.85); /* slate-900 with opacity */
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 8px;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .glass-select option {
-            background: #0f172a; /* slate-900 */
-            color: #fff;
-        }
-        .glass-select optgroup { color: #fff; background: #0f172a; }
-
-        .glass-select:focus {
-            outline: none;
-            border-color: rgba(99, 102, 241, 0.5);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        .glass-button-small {
-            padding: 6px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .glass-button-small:hover {
-            transform: scale(1.1);
-        }
-
-        .glass-navbar {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px;
-            box-shadow: none;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            space-y: 1;
-            color: rgba(255, 255, 255, 0.7);
-            transition: all 0.3s ease;
-            padding: 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            color: white;
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
-        .glass-modal {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 32px;
-            max-width: 400px;
-            width: 90%;
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        /* Removed floating orb visuals */
-
-        @keyframes modalSlideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-50px) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-    </style>
-
-<script type="module">
-    // Initialize AOS
-    AOS.init({
-        duration: 800,
-        easing: 'ease-out-cubic',
-        once: true
-    });
-
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getDatabase, ref, onValue, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
-    const statusClasses = {
-        'Pending': 'bg-yellow-400',
-        'In Progress': 'bg-blue-500',
-        'Completed': 'bg-green-500',
-        'Cancelled': 'bg-red-500'
-    };
-
-    // Firebase configuration with error handling
-    try {
-        const firebaseConfig = {
-            apiKey: "AIzaSyDX7bLWxiqYsGnouo1SxlQR_Ffn4Mqh7Lo",
-            authDomain: "ice-cream-shop-69592.firebaseapp.com",
-            projectId: "ice-cream-shop-69592",
-            storageBucket: "ice-cream-shop-69592.appspot.com",
-            messagingSenderId: "392338402302",
-            appId: "1:392338402302:web:bb0c3798317f5b9406eeaf",
-            databaseURL: "https://ice-cream-shop-69592-default-rtdb.firebaseio.com/"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
-        // Firebase real-time listeners with enhanced animations
-    onChildAdded(ref(database, 'orders'), (snapshot) => {
-        const order = snapshot.val();
-        if (document.getElementById(`order-${order.id}`)) return;
-
-        const orderCard = createOrderCard(order);
-            const containerId = `${order.status.toLowerCase().replace(' ', '')}-orders`;
-            const container = document.getElementById(containerId);
-            
-            if (container) {
-                orderCard.style.opacity = '0';
-                orderCard.style.transform = 'translateY(30px) scale(0.9)';
-                container.prepend(orderCard);
-                
-                // Enhanced animate in
-                setTimeout(() => {
-                    orderCard.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-                    orderCard.style.opacity = '1';
-                    orderCard.style.transform = 'translateY(0) scale(1)';
-                }, 100);
-            }
-    });
-
-    onValue(ref(database, 'orders'), (snapshot) => {
-        snapshot.forEach((childSnapshot) => {
-            const order = childSnapshot.val();
-            const orderElement = document.getElementById(`order-${order.id}`);
-            if (orderElement) {
-                const statusSelect = orderElement.querySelector('select');
-                const statusBadge = orderElement.querySelector('span');
-                
-                statusSelect.value = order.status.toLowerCase().replace(' ', '_');
-                statusBadge.textContent = order.status;
-                
-                Object.values(statusClasses).forEach(cls => statusBadge.classList.remove(cls));
-                statusBadge.classList.add(statusClasses[order.status]);
-                }
-            });
-        });
-
-        console.log("Firebase connected successfully");
-    } catch (error) {
-        console.log("Firebase connection failed:", error);
-        console.log("Using manual refresh mode");
-    }
-
-    function createOrderCard(order) {
-        const orderElement = document.createElement('div');
-        orderElement.className = 'glass-order-card';
-        orderElement.id = `order-${order.id}`;
-
-        let itemsHtml = '';
-        if (order.items && order.items.length > 0) {
-            itemsHtml = order.items.map(item => 
-                `<li class="text-white/80 text-sm">${item.quantity} x ${item.name}</li>`
-            ).join('');
-        }
-
-        orderElement.innerHTML = `
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-lg font-semibold text-white">Order #${order.id}</h3>
-                <div class="flex items-center space-x-2">
-                <span class="px-2 py-1 text-xs font-semibold text-white rounded-full ${statusClasses[order.status]}">${order.status}</span>
-                    <button onclick="deleteOrder('${order.id}')" class="text-red-400 hover:text-red-300 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-            <p class="text-white/80 mb-2">Table: ${order.table}</p>
-            <p class="text-white/60 text-sm mb-3">Time: ${new Date(order.created_at).toLocaleTimeString()}</p>
-            <ul class="mb-3 space-y-1">
-                ${itemsHtml}
-            </ul>
-            <select onchange="updateStatus('${order.id}', this.value)" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all backdrop-blur-sm">
-                <option value="pending" ${order.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="in_progress" ${order.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                <option value="completed" ${order.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                <option value="cancelled" ${order.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+<!-- Charts Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Sales Chart -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Sales Overview</h3>
+            <select class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>Last 3 months</option>
             </select>
-        `;
-        return orderElement;
-    }
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Popular Items Chart -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Popular Items</h3>
+            <button class="text-sm text-blue-600 hover:text-blue-800">View All</button>
+        </div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="popularItemsChart"></canvas>
+        </div>
+    </div>
+</div>
 
-    function updateStatus(orderId, status) {
-        const orderElement = document.getElementById(`order-${orderId}`);
-        if (orderElement) {
-            orderElement.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                orderElement.style.transform = 'scale(1)';
-            }, 150);
+<!-- Orders Management -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Recent Orders -->
+    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">Recent Orders</h3>
+                <a href="#" class="text-sm text-blue-600 hover:text-blue-800">View All Orders</a>
+            </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Table</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for status, orders in orders_by_status.items %}
+                        {% for order in orders|slice:":3" %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">#{{ order.id }}</div>
+                                <div class="text-sm text-gray-500">{{ order.created_at|date:"M d, H:i" }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ order.customer_name }}</div>
+                                <div class="text-sm text-gray-500">{{ order.customer_email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                Table {{ order.table.number }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ order.items.count }} item{{ order.items.count|pluralize }}</div>
+                                <button onclick="viewOrderDetails({{ order.id }})" class="text-xs text-blue-600 hover:text-blue-800">
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                ₹{{ order.get_total_amount }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                                    {% if order.status == 'paid' %}bg-green-100 text-green-800
+                                    {% elif order.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                    {% elif order.status == 'completed' %}bg-blue-100 text-blue-800
+                                    {% elif order.status == 'cancelled' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <button onclick="updateOrderStatus({{ order.id }}, 'in_progress')" 
+                                            class="text-blue-600 hover:text-blue-900">
+                                        <i class="fas fa-play"></i>
+                                    </button>
+                                    <button onclick="updateOrderStatus({{ order.id }}, 'completed')" 
+                                            class="text-green-600 hover:text-green-900" title="Mark Complete">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button onclick="deleteOrder({{ order.id }})" 
+                                            class="text-red-600 hover:text-red-900" title="Delete Order">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="space-y-6">
+        <!-- Order Status Summary -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Order Status</h3>
+            <div class="space-y-3">
+                {% for status, orders in orders_by_status.items %}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 rounded-full
+                            {% if status == 'pending' %}bg-gray-400
+                            {% elif status == 'in_progress' %}bg-yellow-400
+                            {% elif status == 'completed' %}bg-green-400
+                            {% elif status == 'cancelled' %}bg-red-400{% endif %}"></div>
+                        <span class="text-sm text-gray-600 capitalize">{{ status|title }}</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">{{ orders.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+            <div class="space-y-3">
+                <a href="{% url 'add_ice_cream' %}" 
+                   class="flex items-center space-x-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition">
+                    <i class="fas fa-plus text-blue-600"></i>
+                    <span class="text-sm font-medium text-blue-600">Add Ice Cream</span>
+                </a>
+                
+                <a href="{% url 'add_table' %}" 
+                   class="flex items-center space-x-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition">
+                    <i class="fas fa-table text-green-600"></i>
+                    <span class="text-sm font-medium text-green-600">Add Table</span>
+                </a>
+                
+                <a href="{% url 'refund_list' %}" 
+                   class="flex items-center space-x-3 p-3 bg-yellow-50 hover:bg-yellow-100 rounded-lg transition">
+                    <i class="fas fa-undo text-yellow-600"></i>
+                    <span class="text-sm font-medium text-yellow-600">Manage Refunds</span>
+                </a>
+                
+                <button onclick="clearAllOrders()" 
+                        class="w-full flex items-center space-x-3 p-3 bg-red-50 hover:bg-red-100 rounded-lg transition">
+                    <i class="fas fa-trash text-red-600"></i>
+                    <span class="text-sm font-medium text-red-600">Clear All Orders</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div id="order-details-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">Order Details</h3>
+                <button onclick="closeOrderModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div id="order-details-content">
+                <!-- Order details will be loaded here -->
+                <div class="text-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p class="text-gray-600 mt-2">Loading order details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sales Chart
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Sales ($)',
+            data: [120, 190, 300, 500, 200, 300, 450],
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+            intersect: false,
+        },
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
         }
+    }
+});
 
-        fetch('/panel/order/' + orderId + '/update/', {
+// Popular Items Chart
+const popularCtx = document.getElementById('popularItemsChart').getContext('2d');
+new Chart(popularCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Vanilla', 'Chocolate', 'Strawberry', 'Mint', 'Others'],
+        datasets: [{
+            data: [30, 25, 20, 15, 10],
+            backgroundColor: [
+                '#667eea',
+                '#764ba2',
+                '#f093fb',
+                '#f5576c',
+                '#4facfe'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Update order status
+function updateOrderStatus(orderId, status) {
+    if (confirm(`Update order #${orderId} to ${status}?`)) {
+        console.log('Updating order:', orderId, 'to status:', status);
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            console.error('CSRF token not found');
+            alert('Security token missing. Please refresh the page.');
+            return;
+        }
+        
+        fetch(`/panel/order/${orderId}/update/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': csrfToken.value
             },
             body: `status=${status}`
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data.status !== 'success') {
-                alert('Failed to update status. Please try again.');
-            }
-        });
-    }
-
-    function filterOrders(status) {
-        const orderCards = document.querySelectorAll('.glass-order-card');
-        const filterBtns = document.querySelectorAll('.glass-filter-btn');
-        
-        // Update active button
-        filterBtns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        orderCards.forEach(card => {
-            const statusBadge = card.querySelector('span');
-            if (status === 'all' || statusBadge.textContent.toLowerCase().includes(status.replace('_', ' '))) {
-                card.style.display = 'block';
-                card.style.animation = 'fadeIn 0.5s ease';
+            console.log('Response data:', data);
+            if (data.status === 'success') {
+                if (data.show_refund_popup) {
+                    // Handle refund popup if needed
+                    if (confirm(`Order cancelled. Do you want to process a refund of ₹${data.order_total}?`)) {
+                        window.location.href = `/panel/order/${data.order_id}/refund/`;
+                        return;
+                    }
+                }
+                location.reload();
             } else {
-                card.style.display = 'none';
+                alert('Failed to update order status: ' + (data.error || 'Unknown error'));
             }
+        })
+        .catch(error => {
+            console.error('Error updating order status:', error);
+            alert('Failed to update order status: ' + error.message);
         });
     }
+}
 
-    function refreshOrders() {
-        const button = event.target.closest('button');
-        button.style.transform = 'rotate(360deg)';
-        setTimeout(() => {
-            location.reload();
-        }, 300);
-    }
-
-    function clearAllOrders() {
-        document.getElementById('security-modal').classList.remove('hidden');
-    }
-
-    function closeSecurityModal() {
-        document.getElementById('security-modal').classList.add('hidden');
-    }
-
-    function confirmClearAllOrders() {
+// Clear all orders
+function clearAllOrders() {
+    if (confirm('Are you sure you want to clear all orders? This action cannot be undone.')) {
         fetch('/panel/orders/clear/', {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                closeSecurityModal();
+            if (data.success) {
                 location.reload();
             } else {
-                alert('Failed to clear orders: ' + data.message);
-            }
-        });
-    }
-
-    function deleteOrder(orderId) {
-        if (confirm('Are you sure you want to delete this order?')) {
-            const orderElement = document.getElementById(`order-${orderId}`);
-            if (orderElement) {
-                orderElement.style.transform = 'scale(0.8)';
-                orderElement.style.opacity = '0';
-                setTimeout(() => {
-                    fetch('/panel/order/' + orderId + '/delete/', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            orderElement.remove();
-                        } else {
-                            alert('Failed to delete order: ' + data.message);
-                            orderElement.style.transform = 'scale(1)';
-                            orderElement.style.opacity = '1';
-                        }
-                    });
-                }, 300);
-            }
-        }
-    }
-
-    // Expose functions to global scope even in module context
-    window.updateStatus = updateStatus;
-    window.clearAllOrders = clearAllOrders;
-    window.deleteOrder = deleteOrder;
-    window.refreshOrders = refreshOrders;
-    window.filterOrders = filterOrders;
-    window.closeSecurityModal = closeSecurityModal;
-    window.confirmClearAllOrders = confirmClearAllOrders;
-
-    // Refund Modal Functions
-    let currentRefundOrderId = null;
-
-    function showRefundModal(orderId, orderTotal) {
-        currentRefundOrderId = orderId;
-        
-        // Load refund form
-        fetch(`/panel/order/${orderId}/refund/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    document.getElementById('refund-form-container').innerHTML = data.form_html;
-                    document.getElementById('refund-modal').classList.remove('hidden');
-                    document.getElementById('refund-modal').classList.add('flex');
-                    
-                    // Setup form submission
-                    setupRefundForm();
-                }
-            })
-            .catch(error => {
-                console.error('Error loading refund form:', error);
-                alert('Error loading refund form');
-            });
-    }
-
-    function closeRefundModal() {
-        document.getElementById('refund-modal').classList.add('hidden');
-        document.getElementById('refund-modal').classList.remove('flex');
-        currentRefundOrderId = null;
-    }
-
-    function setupRefundForm() {
-        const form = document.getElementById('refund-form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(form);
-                
-                fetch(`/panel/order/${currentRefundOrderId}/refund/`, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        closeRefundModal();
-                        alert(data.message);
-                        // Refresh the page to show updated order status
-                        location.reload();
-                    } else {
-                        alert('Error processing refund: ' + JSON.stringify(data.errors));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error processing refund:', error);
-                    alert('Error processing refund');
-                });
-            });
-        }
-    }
-
-    // Update the existing updateStatus function to handle refund popup
-    window.updateStatus = function(orderId, status) {
-        const formData = new FormData();
-        formData.append('status', status);
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-        fetch(`/panel/order/${orderId}/update/`, {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                if (data.show_refund_popup) {
-                    // Show refund popup for cancelled orders
-                    showRefundModal(data.order_id, data.order_total);
-                } else {
-                    // Regular status update - refresh page
-                    location.reload();
-                }
-            } else {
-                alert('Error updating order status');
+                alert('Failed to clear orders');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error updating order status');
+            alert('Failed to clear orders');
         });
-    };
-
-    // Make functions globally available
-    window.showRefundModal = showRefundModal;
-    window.closeRefundModal = closeRefundModal;
-
-    // Add polling for real-time updates (disabled for now to fix loading issues)
-    function startPolling() {
-        // Auto-refresh disabled - use manual refresh button instead
-        console.log('Auto-refresh disabled. Use the Refresh button for updates.');
     }
+}
 
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Admin dashboard loaded successfully');
-        // Auto-refresh disabled for stability
-    });
+// View order details
+function viewOrderDetails(orderId) {
+    console.log('Viewing order details for order:', orderId);
+    
+    // Show modal
+    document.getElementById('order-details-modal').classList.remove('hidden');
+    document.getElementById('order-details-modal').classList.add('flex');
+    
+    // Load order details
+    fetch(`/panel/order/${orderId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayOrderDetails(data.order);
+            } else {
+                document.getElementById('order-details-content').innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                        <p class="text-red-600">Failed to load order details</p>
+                        <p class="text-gray-500 text-sm">${data.error || 'Unknown error'}</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading order details:', error);
+            document.getElementById('order-details-content').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-3xl mb-4"></i>
+                    <p class="text-red-600">Failed to load order details</p>
+                    <p class="text-gray-500 text-sm">Network error</p>
+                </div>
+            `;
+        });
+}
+
+function displayOrderDetails(order) {
+    const content = `
+        <div class="space-y-6">
+            <!-- Order Header -->
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Order #${order.id}</h4>
+                        <p class="text-sm text-gray-600">${order.created_at}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Status</p>
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusClass(order.status)}">
+                            ${order.status_display}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customer Info -->
+            <div>
+                <h5 class="font-semibold text-gray-800 mb-2">Customer Information</h5>
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-gray-600">Name</p>
+                            <p class="font-medium">${order.customer_name}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Email</p>
+                            <p class="font-medium">${order.customer_email}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Table</p>
+                            <p class="font-medium">Table ${order.table_number}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600">Payment</p>
+                            <p class="font-medium">${order.payment_method || 'Not specified'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            <div>
+                <h5 class="font-semibold text-gray-800 mb-2">Order Items</h5>
+                <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Qty</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            ${order.items.map(item => `
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">${item.ice_cream_name}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-gray-900">${item.quantity}</td>
+                                    <td class="px-4 py-3 text-gray-900">₹${item.price}</td>
+                                    <td class="px-4 py-3 font-medium text-gray-900">₹${item.total}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="3" class="px-4 py-3 text-right font-semibold text-gray-800">Total:</td>
+                                <td class="px-4 py-3 font-bold text-gray-900">₹${order.total_amount}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Order Actions -->
+            <div class="flex space-x-3 pt-4 border-t border-gray-200">
+                <button onclick="updateOrderStatus(${order.id}, 'in_progress')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                    <i class="fas fa-play mr-2"></i>Start Preparing
+                </button>
+                <button onclick="updateOrderStatus(${order.id}, 'completed')" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-check mr-2"></i>Mark Complete
+                </button>
+                <button onclick="deleteOrder(${order.id}); closeOrderModal();" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                    <i class="fas fa-trash mr-2"></i>Delete Order
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('order-details-content').innerHTML = content;
+}
+
+function getStatusClass(status) {
+    switch(status) {
+        case 'paid': return 'bg-green-100 text-green-800';
+        case 'in_progress': return 'bg-yellow-100 text-yellow-800';
+        case 'completed': return 'bg-blue-100 text-blue-800';
+        case 'cancelled': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function closeOrderModal() {
+    document.getElementById('order-details-modal').classList.add('hidden');
+    document.getElementById('order-details-modal').classList.remove('flex');
+}
+
+// Delete order function
+function deleteOrder(orderId) {
+    if (confirm(`Are you sure you want to delete order #${orderId}? This action cannot be undone.`)) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (!csrfToken) {
+            alert('Security token missing. Please refresh the page.');
+            return;
+        }
+        
+        fetch(`/panel/order/${orderId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken.value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Order deleted successfully!');
+                location.reload();
+            } else {
+                alert('Failed to delete order: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting order:', error);
+            alert('Failed to delete order: ' + error.message);
+        });
+    }
+}
+
 </script>
-{% endblock %} 
+{% endblock %}

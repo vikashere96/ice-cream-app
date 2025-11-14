@@ -34,7 +34,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-600">Total Amount</p>
-                        <p class="font-medium text-lg">${{ order.get_total_amount }}</p>
+                        <p class="font-medium text-lg">₹{{ order.get_total_amount }}</p>
                     </div>
                 </div>
 
@@ -45,7 +45,7 @@
                         {% for item in order.items.all %}
                         <div class="flex justify-between bg-gray-50 p-2 rounded">
                             <span>{{ item.quantity }}x {{ item.ice_cream.name }}</span>
-                            <span>${{ item.ice_cream.price }}</span>
+                            <span>₹{{ item.ice_cream.price }}</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -71,7 +71,7 @@
                     <div class="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                         <h3 class="text-sm font-semibold text-yellow-800 mb-2">Refund Information</h3>
                         <ul class="text-sm text-yellow-700 space-y-1">
-                            <li>• Refund amount: ${{ order.get_total_amount }}</li>
+                            <li>• Refund amount: ₹{{ order.get_total_amount }}</li>
                             <li>• Refund will be processed to your original payment method</li>
                             <li>• Processing time: 24-48 hours</li>
                             <li>• You will receive an email confirmation</li>

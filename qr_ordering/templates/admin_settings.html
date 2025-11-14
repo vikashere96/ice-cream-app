@@ -5,6 +5,7 @@
 {% block page_description %}Configure your ice cream shop settings{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Settings Navigation -->
     <div class="lg:col-span-1">
@@ -48,15 +49,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Shop Name</label>
-                        <input type="text" name="shop_name" value="Ice Cream Shop" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <input type="text" name="shop_name" value="{{ settings.shop_name }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Currency</label>
                         <select name="currency" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="GBP">GBP (£)</option>
-                            <option value="INR">INR (₹)</option>
+                            <option value="USD" {% if settings.currency == 'USD' %}selected{% endif %}>USD ($)</option>
+                            <option value="EUR" {% if settings.currency == 'EUR' %}selected{% endif %}>EUR (€)</option>
+                            <option value="GBP" {% if settings.currency == 'GBP' %}selected{% endif %}>GBP (£)</option>
+                            <option value="INR" {% if settings.currency == 'INR' %}selected{% endif %}>INR (₹)</option>
                         </select>
                     </div>
                 </div>
@@ -605,6 +606,109 @@ function showNotification(message, type) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+// Save settings function
+function saveSettings(category) {
+    const form = document.getElementById(`${category}-form`);
+    if (!form) {
+        showNotification('Form not found', 'error');
+        return;
+    }
+    
+    const formData = new FormData(form);
+    formData.append('category', category);
+    
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Show loading state
+    const saveBtn = event.target;
+    const originalText = saveBtn.textContent;
+    saveBtn.textContent = 'Saving...';
+    saveBtn.disabled = true;
+    
+    fetch('/panel/settings/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.error || 'Failed to save settings', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to save settings', 'error');
+    })
+    .finally(() => {
+        saveBtn.textContent = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+// Send test email
+function sendTestEmail() {
+    showNotification('Sending test email...', 'info');
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/panel/settings/test-email/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Test email sent successfully!', 'success');
+        } else {
+            showNotification(data.error || 'Failed to send test email', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to send test email', 'error');
+    });
+}
+
+// Create backup
+function createBackup() {
+    showNotification('Creating backup...', 'info');
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/panel/settings/create-backup/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Backup created successfully!', 'success');
+            // Optionally download the backup file
+            if (data.backup_file) {
+                window.location.href = data.backup_file;
+            }
+        } else {
+            showNotification(data.error || 'Failed to create backup', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to create backup', 'error');
+    });
 }
 </script>
 {% endblock %}

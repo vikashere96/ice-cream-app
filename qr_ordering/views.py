@@ -3,6 +3,7 @@
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from .models import IceCream, Table, Order, OrderItem, Refund, EmailVerification
 from .forms import IceCreamForm, TableForm, RefundForm
 from django.http import JsonResponse
@@ -22,15 +23,38 @@ from datetime import timedelta
 
 
 def order_page(request, token):
+    from django.conf import settings
+    
     table = get_object_or_404(Table, token=token)
+    
+    # Get all ice creams and handle missing images gracefully
     ice_creams = IceCream.objects.all()
+    
+    # Filter out ice creams with missing or invalid images
+    valid_ice_creams = []
+    for ice_cream in ice_creams:
+        try:
+            # Try to access the image URL to check if it exists
+            if ice_cream.image and ice_cream.image.url:
+                valid_ice_creams.append(ice_cream)
+            else:
+                # Ice cream without image - still include it, template will handle placeholder
+                valid_ice_creams.append(ice_cream)
+        except (ValueError, AttributeError):
+            # Image field exists but file is missing - still include it
+            valid_ice_creams.append(ice_cream)
+    
     customer_name = request.session.get('customer_name')
     customer_picture = request.session.get('customer_picture')
+    
     return render(request, 'order_page.html', {
         'table': table,
-        'ice_creams': ice_creams,
+        'ice_creams': valid_ice_creams,
         'customer_name': customer_name,
         'customer_picture': customer_picture,
+        'customer_email': request.session.get('customer_email', ''),
+        'email_verified': request.session.get('email_verified', False),
+        'razorpay_key': getattr(settings, 'RAZORPAY_KEY_ID', 'rzp_test_Oq0mTDIi1X3lAb'),
     })
 from django.views.decorators.csrf import csrf_exempt
 import requests
@@ -68,33 +92,28 @@ def customer_google_login(request):
         if not email or not name:
             return JsonResponse({'success': False, 'error': 'Missing email or name from login'}, status=400)
         
+        # Normalize email
+        email = email.lower().strip()
+        
         # Send email verification
         verification_code = generate_verification_code()
         expires_at = timezone.now() + timedelta(minutes=10)
         
-        # Create or update verification record
-        verification, created = EmailVerification.objects.get_or_create(
+        # Clean up old unverified records for this email
+        EmailVerification.objects.filter(email=email, is_verified=False).delete()
+        
+        # Create new verification record
+        verification = EmailVerification.objects.create(
             email=email,
-            defaults={
-                'verification_code': verification_code,
-                'expires_at': expires_at
-            }
+            verification_code=verification_code,
+            expires_at=expires_at
         )
         
-        if not created and not verification.is_verified:
-            # For testing: keep existing code if it's 123456, otherwise update
-            if verification.verification_code != '123456':
-                verification.verification_code = verification_code
-                verification.expires_at = expires_at
-                verification.save()
-            else:
-                # Keep the test code but extend expiry
-                verification.expires_at = timezone.now() + timedelta(hours=1)
-                verification.save()
+        print(f"DEBUG: Created verification record - Email: {email}, Code: {verification_code}")
         
         # Send verification email
         try:
-            send_verification_email(email, name, verification_code)
+            send_verification_email(email, name, verification.verification_code)
             
             # Store in session (but mark as unverified)
             request.session['customer_name'] = name
@@ -152,8 +171,10 @@ def send_verification_email(email, name, code):
 def verify_email(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        email = data.get('email')
-        code = data.get('code')
+        email = data.get('email', '').strip().lower()
+        code = data.get('code', '').strip()
+        
+        print(f"DEBUG: Verification attempt - Email: {email}, Code: {code}")
         
         # Check for test code first (for development/testing)
         if code == '123456':
@@ -189,13 +210,23 @@ def verify_email(request):
         
         # Normal verification flow
         try:
+            # Debug: Check all verification records for this email
+            all_verifications = EmailVerification.objects.filter(email=email)
+            print(f"DEBUG: Found {all_verifications.count()} verification records for {email}")
+            
+            for v in all_verifications:
+                print(f"DEBUG: Record - Code: {v.verification_code}, Verified: {v.is_verified}, Expired: {v.is_expired()}")
+            
             verification = EmailVerification.objects.get(
                 email=email,
                 verification_code=code,
                 is_verified=False
             )
             
+            print(f"DEBUG: Found matching verification record")
+            
             if verification.is_expired():
+                print(f"DEBUG: Verification code has expired")
                 return JsonResponse({'success': False, 'error': 'Verification code has expired'}, status=400)
             
             # Mark as verified
@@ -203,12 +234,15 @@ def verify_email(request):
             verification.verified_at = timezone.now()
             verification.save()
             
+            print(f"DEBUG: Email verified successfully")
+            
             # Update session
             request.session['email_verified'] = True
             
             return JsonResponse({'success': True, 'message': 'Email verified successfully'})
             
         except EmailVerification.DoesNotExist:
+            print(f"DEBUG: No matching verification record found")
             return JsonResponse({'success': False, 'error': 'Invalid verification code'}, status=400)
     
     return JsonResponse({'success': False, 'error': 'Invalid request'}, status=400)
@@ -460,43 +494,58 @@ def order_status(request, order_id):
 @login_required
 def admin_dashboard(request):
     today = timezone.now().date()
-    # Only count paid orders (exclude draft orders)
+    
+    # Get today's orders (exclude draft orders)
     orders_today = Order.objects.filter(
         created_at__date=today,
-        status__in=['paid', 'in_progress', 'completed', 'cancelled']  # Exclude draft
+        status__in=['paid', 'in_progress', 'completed', 'cancelled']
     )
     
+    # Calculate stats
     stats = {
         'total_orders_today': orders_today.count(),
         'total_revenue_today': OrderItem.objects.filter(order__in=orders_today).aggregate(
             total=Sum(F('quantity') * F('ice_cream__price'))
         )['total'] or 0,
+        'most_popular_ice_cream': 'Vanilla',  # You can calculate this from OrderItem
+        'active_tables': Table.objects.filter(
+            orders__created_at__date=today,
+            orders__status__in=['paid', 'in_progress', 'completed']
+        ).distinct().count(),
     }
-
-    most_popular_item = OrderItem.objects.filter(
-        order__status__in=['paid', 'in_progress', 'completed']  # Only from paid orders
-    ).values('ice_cream__name').annotate(
-        total=Count('id')
-    ).order_by('-total').first()
-    stats['most_popular_ice_cream'] = most_popular_item['ice_cream__name'] if most_popular_item else 'N/A'
     
-    # Only show paid orders (exclude draft orders)
-    all_orders = Order.objects.filter(
+    # Get all recent orders (without slicing first)
+    base_orders = Order.objects.filter(
         status__in=['paid', 'in_progress', 'completed', 'cancelled']
-    ).order_by('-created_at')
+    ).select_related('table').prefetch_related('items__ice_cream').order_by('-created_at')
+    
+    # Group orders by status (filter before converting to list)
     orders_by_status = {
-        'pending': all_orders.filter(status__in=['pending', 'pending_payment']),
-        'in_progress': all_orders.filter(status__in=['in_progress', 'paid']),
-        'completed': all_orders.filter(status='completed'),
-        'cancelled': all_orders.filter(status='cancelled'),
+        'paid': base_orders.filter(status='paid')[:20],
+        'in_progress': base_orders.filter(status='in_progress')[:20],
+        'completed': base_orders.filter(status='completed')[:20],
+        'cancelled': base_orders.filter(status='cancelled')[:20],
     }
-
+    
+    # Count pending orders
+    pending_orders_count = Order.objects.filter(
+        status__in=['paid', 'in_progress']
+    ).count()
+    
+    # Count active tables (tables with orders today)
+    active_tables_count = Table.objects.filter(
+        orders__created_at__date=today,
+        orders__status__in=['paid', 'in_progress', 'completed']
+    ).distinct().count()
+    
     context = {
         'stats': stats,
         'orders_by_status': orders_by_status,
+        'pending_orders_count': pending_orders_count,
+        'active_tables_count': active_tables_count,
     }
     
-    return render(request, 'admin_dashboard_new.html', context)
+    return render(request, 'admin_dashboard.html', context)
 
 @login_required
 def admin_analytics(request):
@@ -576,22 +625,95 @@ def admin_analytics(request):
 @login_required
 def admin_settings(request):
     """Admin settings page"""
+    from .models import ShopSettings
+    
+    settings = ShopSettings.get_settings()
+    
     if request.method == 'POST':
         # Handle settings save
         category = request.POST.get('category')
-        # Here you would save the settings to database or configuration file
-        return JsonResponse({'success': True, 'message': f'{category} settings saved successfully'})
-    
-    # Load current settings (you would load from database/config file)
-    settings = {
-        'shop_name': 'Ice Cream Shop',
-        'currency': 'USD',
-        'timezone': 'UTC',
-        'upi_id': '7383712117@yespop',
-        'email_host': 'smtp.gmail.com',
-        'email_port': 587,
-        'from_email': 'vikasmca96@gmail.com',
-    }
+        
+        try:
+            if category == 'general':
+                settings.shop_name = request.POST.get('shop_name', settings.shop_name)
+                settings.currency = request.POST.get('currency', settings.currency)
+                settings.timezone = request.POST.get('timezone', settings.timezone)
+                settings.date_format = request.POST.get('date_format', settings.date_format)
+                settings.order_prefix = request.POST.get('order_prefix', settings.order_prefix)
+                settings.auto_refresh_dashboard = request.POST.get('auto_refresh') == 'on'
+                
+            elif category == 'shop':
+                settings.shop_description = request.POST.get('shop_description', settings.shop_description)
+                settings.phone = request.POST.get('phone', settings.phone)
+                settings.email = request.POST.get('email', settings.email)
+                settings.address = request.POST.get('address', settings.address)
+                
+                opening_time = request.POST.get('opening_time')
+                closing_time = request.POST.get('closing_time')
+                if opening_time:
+                    from datetime import datetime
+                    settings.opening_time = datetime.strptime(opening_time, '%H:%M').time()
+                if closing_time:
+                    from datetime import datetime
+                    settings.closing_time = datetime.strptime(closing_time, '%H:%M').time()
+                    
+            elif category == 'payment':
+                settings.upi_enabled = request.POST.get('upi_enabled') == 'on'
+                settings.upi_id = request.POST.get('upi_id', settings.upi_id)
+                settings.upi_merchant_name = request.POST.get('upi_merchant', settings.upi_merchant_name)
+                
+                settings.razorpay_enabled = request.POST.get('razorpay_enabled') == 'on'
+                settings.razorpay_key_id = request.POST.get('razorpay_key', settings.razorpay_key_id)
+                settings.razorpay_key_secret = request.POST.get('razorpay_secret', settings.razorpay_key_secret)
+                
+                settings.tax_rate = request.POST.get('tax_rate', settings.tax_rate)
+                settings.service_charge = request.POST.get('service_charge', settings.service_charge)
+                
+            elif category == 'email':
+                settings.smtp_host = request.POST.get('smtp_host', settings.smtp_host)
+                settings.smtp_port = request.POST.get('smtp_port', settings.smtp_port)
+                settings.from_email = request.POST.get('from_email', settings.from_email)
+                settings.from_name = request.POST.get('from_name', settings.from_name)
+                
+                email_password = request.POST.get('email_password')
+                if email_password:
+                    settings.email_password = email_password
+                    
+                settings.email_verification_required = request.POST.get('email_verification') == 'on'
+                
+            elif category == 'notifications':
+                settings.notify_new_orders = request.POST.get('notify_new_orders') == 'on'
+                settings.notify_payments = request.POST.get('notify_payments') == 'on'
+                settings.notify_refunds = request.POST.get('notify_refunds') == 'on'
+                settings.admin_notification_email = request.POST.get('admin_email', settings.admin_notification_email)
+                
+                settings.daily_report_enabled = request.POST.get('daily_report') == 'on'
+                report_time = request.POST.get('report_time')
+                if report_time:
+                    from datetime import datetime
+                    settings.daily_report_time = datetime.strptime(report_time, '%H:%M').time()
+                    
+            elif category == 'backup':
+                settings.auto_backup_enabled = request.POST.get('auto_backup') == 'on'
+                backup_time = request.POST.get('backup_time')
+                if backup_time:
+                    from datetime import datetime
+                    settings.backup_time = datetime.strptime(backup_time, '%H:%M').time()
+            
+            # Save settings
+            settings.updated_by = request.user.username if request.user.is_authenticated else 'admin'
+            settings.save()
+            
+            return JsonResponse({
+                'success': True, 
+                'message': f'{category.title()} settings saved successfully!'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
     
     context = {
         'settings': settings,
@@ -601,33 +723,154 @@ def admin_settings(request):
 
 @login_required
 def update_order_status(request, order_id):
+    print(f"DEBUG: Update order status called - Order ID: {order_id}, Method: {request.method}")
+    
     if request.method == 'POST':
         order = get_object_or_404(Order, id=order_id)
-        status = request.POST.get('status')
-        if status in [s[0] for s in Order.STATUS_CHOICES]:
-            old_status = order.status
-            order.status = status
-            order.save()
+        new_status = request.POST.get('status')
+        old_status = order.status
+        
+        print(f"DEBUG: Current status: {old_status}, Requested status: {new_status}")
+        
+        valid_statuses = [s[0] for s in Order.STATUS_CHOICES]
+        print(f"DEBUG: Valid statuses: {valid_statuses}")
+        
+        if new_status not in valid_statuses:
+            print(f"DEBUG: Invalid status: {new_status}")
+            return JsonResponse({'status': 'error', 'error': 'Invalid status'}, status=400)
+        
+        # Validation: Prevent going backwards in the order flow
+        status_order = {
+            'draft': 0,
+            'paid': 1,
+            'in_progress': 2,
+            'completed': 3,
+            'cancelled': 99  # Can cancel at any time
+        }
+        
+        # Check if trying to go backwards (except for cancellation)
+        if new_status != 'cancelled':
+            current_level = status_order.get(old_status, 0)
+            new_level = status_order.get(new_status, 0)
             
-            # Push to Firebase
-            try:
-                db.reference(f'orders/{order.id}/status').set(order.get_status_display())
-                print(f"Order {order.id} status updated in Firebase")
-            except Exception as e:
-                print(f'Firebase status update error for order {order.id}: {e}')
-                # Continue without Firebase
-            
-            # If order is being cancelled, check if refund is needed
-            if status == 'cancelled' and old_status != 'cancelled':
+            if new_level < current_level:
+                error_msg = f"Cannot change order from '{old_status}' back to '{new_status}'"
+                print(f"DEBUG: {error_msg}")
                 return JsonResponse({
-                    'status': 'success', 
-                    'show_refund_popup': True,
-                    'order_id': order.id,
-                    'order_total': float(order.get_total_amount())
-                })
+                    'status': 'error', 
+                    'error': error_msg
+                }, status=400)
+        
+        # Additional validation: Cannot change completed orders (except to cancel)
+        if old_status == 'completed' and new_status != 'cancelled':
+            error_msg = "Cannot change status of completed orders. You can only cancel them."
+            print(f"DEBUG: {error_msg}")
+            return JsonResponse({
+                'status': 'error',
+                'error': error_msg
+            }, status=400)
+        
+        # Update the status
+        order.status = new_status
+        order.save()
+        
+        # Push to Firebase
+        try:
+            db.reference(f'orders/{order.id}/status').set(order.get_status_display())
+            print(f"Order {order.id} status updated in Firebase")
+        except Exception as e:
+            print(f'Firebase status update error for order {order.id}: {e}')
+            # Continue without Firebase
+        
+        # If order is being cancelled, check if refund is needed
+        if new_status == 'cancelled' and old_status != 'cancelled':
+            return JsonResponse({
+                'status': 'success', 
+                'show_refund_popup': True,
+                'order_id': order.id,
+                'order_total': float(order.get_total_amount())
+            })
+        
+        print(f"DEBUG: Order {order.id} status updated successfully from {old_status} to {new_status}")
+        return JsonResponse({
+            'status': 'success',
+            'message': f'Order status updated to {new_status}'
+        })
+    
+    print(f"DEBUG: Invalid request method: {request.method}")
+    return JsonResponse({'status': 'error', 'error': 'Invalid request method'}, status=400)
+
+@login_required
+def order_details(request, order_id):
+    """Get detailed information about an order including items"""
+    try:
+        order = get_object_or_404(Order, id=order_id)
+        
+        # Get order items with ice cream details
+        items = []
+        for item in order.items.all():
+            items.append({
+                'ice_cream_name': item.ice_cream.name,
+                'quantity': item.quantity,
+                'price': float(item.ice_cream.price),
+                'total': float(item.quantity * item.ice_cream.price)
+            })
+        
+        order_data = {
+            'id': order.id,
+            'created_at': order.created_at.strftime('%B %d, %Y at %I:%M %p'),
+            'customer_name': order.customer_name,
+            'customer_email': order.customer_email,
+            'table_number': order.table.number,
+            'status': order.status,
+            'status_display': order.get_status_display(),
+            'payment_method': order.payment_method,
+            'payment_status': order.get_payment_status_display(),
+            'total_amount': float(order.get_total_amount()),
+            'items': items
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'order': order_data
+        })
+        
+    except Exception as e:
+        print(f"Error fetching order details: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+@login_required
+def delete_order(request, order_id):
+    """Delete an order"""
+    if request.method == 'POST':
+        try:
+            order = get_object_or_404(Order, id=order_id)
+            order_number = order.id
             
-            return JsonResponse({'status': 'success'})
-    return JsonResponse({'status': 'error'}, status=400)
+            # Delete the order (cascade will delete related items)
+            order.delete()
+            
+            print(f"Order #{order_number} deleted successfully")
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Order #{order_number} deleted successfully'
+            })
+            
+        except Exception as e:
+            print(f"Error deleting order: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    }, status=400)
 
 def admin_login(request):
     if request.method == 'POST':
@@ -683,7 +926,7 @@ def manage_ice_creams(request):
         'average_price': average_price,
     }
     
-    return render(request, 'manage_ice_creams_new.html', context)
+    return render(request, 'manage_ice_creams.html', context)
 
 @login_required
 def add_ice_cream(request):
@@ -762,30 +1005,105 @@ def manage_tables(request):
         'total_capacity': total_capacity,
     }
     
-    return render(request, 'manage_tables_new.html', context)
+    return render(request, 'manage_tables.html', context)
 
 @login_required
 def add_table(request):
     if request.method == 'POST':
-        form = TableForm(request.POST)
-        if form.is_valid():
-            form.save()
+        print(f"POST data received: {request.POST}")  # Debug log
+        
+        # Handle form data manually for better control
+        number = request.POST.get('number')
+        seats = request.POST.get('seats', 4)
+        description = request.POST.get('description', '')
+        
+        print(f"Parsed data - Number: {number}, Seats: {seats}, Description: {description}")  # Debug log
+        
+        try:
+            # Validate number
+            if not number:
+                messages.error(request, 'Table number is required!')
+                return render(request, 'add_table.html')
+            
+            # Check if table number already exists
+            if Table.objects.filter(number=number).exists():
+                messages.error(request, f'Table {number} already exists!')
+                return render(request, 'add_table.html')
+            
+            # Create new table
+            table = Table.objects.create(
+                number=int(number),
+                seats=int(seats),
+                description=description
+            )
+            
+            print(f"Table created successfully: {table}")  # Debug log
+            messages.success(request, f'Table {number} created successfully!')
             return redirect('manage_tables')
-    else:
-        form = TableForm()
-    return render(request, 'table_form.html', {'form': form})
+            
+        except ValueError as e:
+            messages.error(request, f'Invalid number format: {str(e)}')
+            return render(request, 'add_table.html')
+        except Exception as e:
+            print(f"Error creating table: {e}")  # Debug log
+            messages.error(request, f'Error creating table: {str(e)}')
+            return render(request, 'add_table.html')
+    
+    return render(request, 'add_table.html')
 
 @login_required
 def edit_table(request, pk):
     table = get_object_or_404(Table, pk=pk)
+    
     if request.method == 'POST':
-        form = TableForm(request.POST, instance=table)
-        if form.is_valid():
-            form.save()
+        # Handle form data manually for better control
+        number = request.POST.get('number')
+        seats = request.POST.get('seats', 4)
+        description = request.POST.get('description', '')
+        
+        try:
+            # Check if table number already exists (excluding current table)
+            if Table.objects.filter(number=number).exclude(pk=pk).exists():
+                messages.error(request, f'Table {number} already exists!')
+                return render(request, 'edit_table.html', {'table': table})
+            
+            # Update table
+            table.number = number
+            table.seats = int(seats)
+            table.description = description
+            table.save()
+            
+            messages.success(request, f'Table {number} updated successfully!')
             return redirect('manage_tables')
-    else:
-        form = TableForm(instance=table)
-    return render(request, 'table_form.html', {'form': form})
+            
+        except Exception as e:
+            messages.error(request, f'Error updating table: {str(e)}')
+            return render(request, 'edit_table.html', {'table': table})
+    
+    # Add statistics for the table
+    from django.db.models import Count, Sum
+    
+    table.total_orders = Order.objects.filter(
+        table=table,
+        status__in=['paid', 'in_progress', 'completed']
+    ).count()
+    
+    table.total_revenue = OrderItem.objects.filter(
+        order__table=table,
+        order__status__in=['paid', 'in_progress', 'completed']
+    ).aggregate(
+        total=Sum(F('quantity') * F('ice_cream__price'))
+    )['total'] or 0
+    
+    table.orders_today = Order.objects.filter(
+        table=table,
+        created_at__date=timezone.now().date(),
+        status__in=['paid', 'in_progress', 'completed']
+    ).count()
+    
+    table.avg_order = table.total_revenue / table.total_orders if table.total_orders > 0 else 0
+    
+    return render(request, 'edit_table.html', {'table': table})
 
 @login_required
 def delete_table(request, pk):
@@ -966,7 +1284,7 @@ def refund_list(request):
         'total_refund_amount': total_refund_amount,
     }
     
-    return render(request, 'refund_list_new.html', context)
+    return render(request, 'refund_list.html', context)
 
 @login_required
 def update_refund_status(request, refund_id):
@@ -1050,4 +1368,4 @@ def admin_dashboard_simple(request):
         'orders_by_status': orders_by_status,
     }
     
-    return render(request, 'admin_dashboard_simple.html', context)
+    return render(request, 'admin_dashboard.html', context)

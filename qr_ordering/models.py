@@ -34,6 +34,8 @@ class Table(models.Model):
 
     number = models.PositiveIntegerField(unique=True)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    seats = models.PositiveIntegerField(default=4, help_text="Number of seats at this table")
+    description = models.TextField(blank=True, help_text="Optional description or location of the table")
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True)
     qr_base_url = models.URLField(
         max_length=200,
@@ -191,3 +193,80 @@ class Refund(models.Model):
     
     def __str__(self):
         return f"Refund for Order #{self.order.id} - ₹{self.refund_amount}"
+
+
+class ShopSettings(models.Model):
+    """Store-wide settings for the ice cream shop"""
+    # General Settings
+    shop_name = models.CharField(max_length=200, default='Ice Cream Shop')
+    shop_description = models.TextField(blank=True, default='Premium ice cream shop serving delicious flavors')
+    phone = models.CharField(max_length=20, blank=True, default='+1 (555) 123-4567')
+    email = models.EmailField(blank=True, default='info@icecreamshop.com')
+    address = models.TextField(blank=True, default='123 Sweet Street, Ice Cream City')
+    opening_time = models.TimeField(null=True, blank=True)
+    closing_time = models.TimeField(null=True, blank=True)
+    
+    # Currency & Format
+    currency = models.CharField(max_length=10, default='INR', choices=[
+        ('USD', 'USD ($)'),
+        ('EUR', 'EUR (€)'),
+        ('GBP', 'GBP (£)'),
+        ('INR', 'INR (₹)'),
+    ])
+    timezone = models.CharField(max_length=50, default='Asia/Kolkata')
+    date_format = models.CharField(max_length=20, default='DD/MM/YYYY')
+    order_prefix = models.CharField(max_length=10, default='ICE')
+    
+    # Payment Settings
+    upi_enabled = models.BooleanField(default=True)
+    upi_id = models.CharField(max_length=100, blank=True, default='7383712117@yespop')
+    upi_merchant_name = models.CharField(max_length=100, blank=True, default='Ice Cream Shop')
+    
+    razorpay_enabled = models.BooleanField(default=False)
+    razorpay_key_id = models.CharField(max_length=100, blank=True)
+    razorpay_key_secret = models.CharField(max_length=100, blank=True)
+    
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    service_charge = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    
+    # Email Settings
+    smtp_host = models.CharField(max_length=100, default='smtp.gmail.com')
+    smtp_port = models.IntegerField(default=587)
+    from_email = models.EmailField(default='vikasmca96@gmail.com')
+    from_name = models.CharField(max_length=100, default='Ice Cream Shop')
+    email_password = models.CharField(max_length=200, blank=True)
+    email_verification_required = models.BooleanField(default=True)
+    
+    # Notification Settings
+    notify_new_orders = models.BooleanField(default=True)
+    notify_payments = models.BooleanField(default=True)
+    notify_refunds = models.BooleanField(default=True)
+    admin_notification_email = models.EmailField(blank=True, default='admin@icecreamshop.com')
+    
+    # Daily Reports
+    daily_report_enabled = models.BooleanField(default=False)
+    daily_report_time = models.TimeField(null=True, blank=True)
+    
+    # Backup Settings
+    auto_backup_enabled = models.BooleanField(default=False)
+    backup_time = models.TimeField(null=True, blank=True)
+    
+    # System Settings
+    auto_refresh_dashboard = models.BooleanField(default=True)
+    
+    # Metadata
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        verbose_name = 'Shop Settings'
+        verbose_name_plural = 'Shop Settings'
+    
+    def __str__(self):
+        return f"Settings for {self.shop_name}"
+    
+    @classmethod
+    def get_settings(cls):
+        """Get or create settings instance"""
+        settings, created = cls.objects.get_or_create(pk=1)
+        return settings

@@ -27,6 +27,7 @@ urlpatterns = [
     path('panel/analytics/', views.admin_analytics, name='admin_analytics'),
     path('panel/settings/', views.admin_settings, name='admin_settings'),
     path('panel/order/<int:order_id>/update/', views.update_order_status, name='update_order_status'),
+    path('panel/order/<int:order_id>/details/', views.order_details, name='order_details'),
     path('panel/orders/clear/', views.clear_all_orders, name='clear_all_orders'),
     path('panel/order/<int:order_id>/delete/', views.delete_order, name='delete_order'),
     

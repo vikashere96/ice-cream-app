@@ -7,9 +7,29 @@
     <title>Order Ice Cream</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        /* Ensure enough space for bottom navbar */
+        body {
+            padding-bottom: 120px;
+        }
+
+        /* Make sure last items are accessible */
+        .menu-item:last-child {
+            margin-bottom: 100px !important;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+
+    </style>
 </head>
 
 <body class="bg-gray-950 text-white font-sans">
+    {% csrf_token %}
 
     <!-- Hero / Welcome Section -->
     <section class="relative min-h-[60vh] overflow-hidden">
@@ -40,7 +60,10 @@
     </section>
 
     <!-- Menu Grid -->
-    <div id="menu" class="container mx-auto px-4 pb-32 md:pb-28"></div>
+    <div id="menu" class="container mx-auto px-4 pb-64 md:pb-60"></div>
+    
+
+    
     <!-- Personalize Section -->
     <div class="rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md p-5 mb-6">
         <div class="flex items-center justify-between mb-3">
@@ -97,34 +120,34 @@
     <h2 class="text-2xl font-semibold mb-4">Popular Flavors</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"></div>
     {% for ice_cream in ice_creams %}
-    <div
-        class="group rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md overflow-hidden hover:translate-y-[-4px] transition-all">
-        <div class="relative">
-            <img src="{{ ice_cream.image.url }}" alt="{{ ice_cream.name }}" class="w-full h-48 object-cover">
-            <div
-                class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition">
-            </div>
-            <div class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs bg-black/50 border border-white/10">
-                ₹{{ ice_cream.price }}</div>
+
+    <div class="relative">
+        <img src="{% if ice_cream.image %}{{ ice_cream.image.url }}{% else %}data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI0MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjaY8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI2NSUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPnt7IGljZV9jcmVhbS5uYW1lIH19PC90ZXh0Pjwvc3ZnPg=={% endif %}" alt="{{ ice_cream.name }}" class="w-full h-48 object-cover" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI2NCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjaY8L3RleHQ+PC9zdmc+'; this.onerror=null;">
+        <div
+            class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition">
         </div>
-        <div class="p-4">
-            <h3 class="text-lg font-semibold">{{ ice_cream.name }}</h3>
-            <div class="mt-4 flex items-center justify-between">
-                <button class="px-4 py-2 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-white transition"
-                    onclick="addToCart('{{ ice_cream.id }}','{{ ice_cream.name }}','{{ ice_cream.price }}')">
-                    Add
-                </button>
-                <div class="text-sm text-white/60 hidden" id="added-{{ ice_cream.id }}">Added to cart ✓</div>
-            </div>
+        <div class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs bg-black/50 border border-white/10">
+            ₹{{ ice_cream.price }}</div>
+    </div>
+    <div class="p-4">
+        <h3 class="text-lg font-semibold">{{ ice_cream.name }}</h3>
+        <div class="mt-4 flex items-center justify-between">
+            <button class="px-4 py-2 rounded-lg bg-emerald-500/90 hover:bg-emerald-500 text-white transition"
+                onclick="addToCart('{{ ice_cream.id }}','{{ ice_cream.name }}','{{ ice_cream.price }}')">
+                Add
+            </button>
+            <div class="text-sm text-white/60 hidden" id="added-{{ ice_cream.id }}">Added to cart ✓</div>
         </div>
+    </div>
     </div>
     {% endfor %}
     </div>
     </div>
 
     <!-- Google Login Section -->
-    <div id="google-signin-section" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-        <div class="bg-gray-900 border border-white/10 rounded-2xl p-8 max-w-md mx-4 w-full">
+    <div id="google-signin-section" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div
+            class="bg-gray-900 border border-white/10 rounded-2xl p-4 sm:p-6 md:p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div class="text-center">
                 <div class="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,21 +266,54 @@
     <!-- Google OAuth script removed to prevent 400 errors -->
     <script>
         let currentUserEmail = '';
-        let emailVerified = false;
+        let emailVerified = {% if email_verified %}true{% else %} false{% endif %};
+        let customerName = '{{ customer_name|default:"" }}';
+        let customerEmail = '{{ customer_email|default:"" }}';
+
+        // Check if customer is already logged in when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            const sessionCustomerName = '{{ customer_name|default:"" }}';
+            const sessionEmailVerified = {% if email_verified %}true{% else %}false{% endif %};
+
+        console.log('Page load - Customer name:', sessionCustomerName);
+        console.log('Page load - Email verified:', sessionEmailVerified);
+
+        if (sessionCustomerName && sessionEmailVerified) {
+            emailVerified = true;
+            showOrderInterface({
+                name: sessionCustomerName,
+                email: '{{ customer_email|default:"" }}',
+                picture: '{{ customer_picture|default:"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5GkPC90ZXh0Pjwvc3ZnPg==" }}'
+            });
+        }
+        });
 
         function showOrderInterface(data) {
+            // Update global variables for Razorpay
+            customerName = data.name || 'Customer';
+            customerEmail = data.email || customerEmail || 'customer@example.com';
+
+            console.log('Updated global variables - Name:', customerName, 'Email:', customerEmail);
+
             // Safely hide/show elements only if they exist
             const googleSigninSection = document.getElementById('google-signin-section');
             const orderUI = document.getElementById('order-ui');
             const customerInfo = document.getElementById('customer-info');
-            const customerName = document.getElementById('customer-name');
+            const customerNameElement = document.getElementById('customer-name');
             const customerPic = document.getElementById('customer-pic');
 
             if (googleSigninSection) googleSigninSection.classList.add('hidden');
             if (orderUI) orderUI.classList.remove('hidden');
             if (customerInfo) customerInfo.classList.remove('hidden');
-            if (customerName) customerName.innerText = data.name || 'Customer';
-            if (customerPic && data.picture) customerPic.src = data.picture;
+            if (customerNameElement) customerNameElement.innerText = data.name || 'Customer';
+            if (customerPic) {
+                if (data.picture && !data.picture.includes('data:image/svg+xml')) {
+                    customerPic.src = data.picture;
+                } else {
+                    // Use a nice SVG avatar
+                    customerPic.src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(data.name || 'Customer')}&backgroundColor=b6e3f4,c0aede,d1d4f9&radius=50`;
+                }
+            }
 
             emailVerified = true;
             console.log('Order interface shown, emailVerified set to:', emailVerified);
@@ -276,10 +332,26 @@
                 emailVerified = true;
                 document.getElementById('email-verification-modal').classList.add('hidden');
                 document.getElementById('email-verification-modal').classList.remove('flex');
-                showOrderInterface({
-                    name: 'Test Customer',
-                    picture: 'https://via.placeholder.com/40'
-                });
+                // Check if customer is already logged in from session
+                const sessionCustomerName = '{{ customer_name|default:"" }}';
+                const sessionCustomerPicture = '{{ customer_picture|default:"" }}';
+
+                console.log('Session customer name:', sessionCustomerName);
+                console.log('Session customer picture:', sessionCustomerPicture);
+
+                if (sessionCustomerName) {
+                    showOrderInterface({
+                        name: sessionCustomerName,
+                        email: '{{ customer_email|default:"" }}',
+                        picture: sessionCustomerPicture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5GkPC90ZXh0Pjwvc3ZnPg=='
+                    });
+                } else {
+                    showOrderInterface({
+                        name: 'Guest',
+                        email: '',
+                        picture: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5GkPC90ZXh0Pjwvc3ZnPg=='
+                    });
+                }
                 alert('Email verified successfully! You can now place your order.');
                 return;
             }
@@ -307,8 +379,9 @@
 
                         // Show order interface
                         showOrderInterface({
-                            name: data.name || 'Test Customer',
-                            picture: data.picture || 'https://via.placeholder.com/40'
+                            name: data.name || 'Guest',
+                            email: data.email || currentUserEmail || '',
+                            picture: data.picture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIyMCIgZmlsbD0iIzY2N2VlYSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiNmZmZmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn5GkPC90ZXh0Pjwvc3ZnPg=='
                         });
 
                         alert('Email verified successfully! You can now place your order.');
@@ -724,7 +797,7 @@
                 const addBtn = card.querySelector('button[onclick^="addToCart("]');
                 const idMatch = addBtn?.getAttribute('onclick')?.match(/addToCart\('\s*([^']+)/);
                 const id = idMatch ? idMatch[1] : null;
-                const image = img?.src || 'https://via.placeholder.com/150x150/667eea/ffffff?text=🍦';
+                const image = img?.src || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjaY8L3RleHQ+PC9zdmc+';
                 return { id, name, price, image, el: card };
             }).filter(p => p.id && p.name && p.price > 0);
 
@@ -772,7 +845,7 @@
                 const div = document.createElement('div');
                 div.className = 'rounded-xl bg-white/5 border border-white/10 p-3 flex items-center gap-3';
                 div.innerHTML = `
-                    <img src="${s.image}" alt="${s.name}" class="w-16 h-16 object-cover rounded-lg" onerror="this.src='https://via.placeholder.com/150x150/667eea/ffffff?text=🍦'" />
+                    <img src="${s.image}" alt="${s.name}" class="w-16 h-16 object-cover rounded-lg" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0OCIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjaY8L3RleHQ+PC9zdmc+'; this.onerror=null;" />
                     <div class="flex-1">
                         <div class="font-semibold">${s.name}</div>
                         <div class="text-sm text-white/70">₹${s.price.toFixed(2)}</div>
@@ -1276,6 +1349,7 @@
                         if (typeof showOrderInterface === 'function') {
                             showOrderInterface({
                                 name: data.name,
+                                email: data.email,
                                 picture: data.picture
                             });
                         }
@@ -1298,6 +1372,12 @@
                 });
         }
 
+        // Rate limiting variables
+        let lastEmailSent = 0;
+        let emailSendCount = 0;
+        const EMAIL_COOLDOWN = 30000; // 30 seconds
+        const MAX_EMAILS_PER_HOUR = 5;
+
         // Email login function (works with real email addresses)
         function emailLogin() {
             const email = document.getElementById('customer-email-input').value.trim();
@@ -1308,6 +1388,32 @@
                 alert('Please enter both email and name');
                 return;
             }
+
+            // Rate limiting check
+            const now = Date.now();
+            if (now - lastEmailSent < EMAIL_COOLDOWN) {
+                const remainingTime = Math.ceil((EMAIL_COOLDOWN - (now - lastEmailSent)) / 1000);
+                alert(`Please wait ${remainingTime} seconds before requesting another verification email.`);
+                return;
+            }
+
+            // Check hourly limit
+            const oneHourAgo = now - (60 * 60 * 1000);
+            if (emailSendCount >= MAX_EMAILS_PER_HOUR && lastEmailSent > oneHourAgo) {
+                alert('Too many verification emails sent. Please try again later.');
+                return;
+            }
+
+            // Disable button temporarily
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = 'Sending...';
+
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = originalText;
+            }, EMAIL_COOLDOWN);
 
             if (!isValidEmail(email)) {
                 console.log('Email validation failed for:', email);
@@ -1337,6 +1443,10 @@
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
+                        // Update rate limiting
+                        lastEmailSent = Date.now();
+                        emailSendCount++;
+
                         // Show email verification modal
                         document.getElementById('verification-email').textContent = email;
                         document.getElementById('google-signin-section').classList.add('hidden');
@@ -1394,17 +1504,40 @@
         }
 
         function payWithRazorpay(orderId, totalPrice) {
+            console.log('Initializing Razorpay payment...', { orderId, totalPrice });
+
             // Remove payment options modal
             document.querySelector('.fixed.inset-0').remove();
 
+            // Validate Razorpay key
+            const razorpayKey = "{{ razorpay_key }}";
+            console.log('Razorpay key:', razorpayKey);
+
+            if (!razorpayKey || razorpayKey === '') {
+                alert('Razorpay configuration error. Please contact support.');
+                console.error('Razorpay key not configured');
+                return;
+            }
+
+            // Check if Razorpay is loaded
+            if (typeof Razorpay === 'undefined') {
+                console.error('Razorpay library not loaded. Checking script...');
+                const razorpayScript = document.querySelector('script[src*="razorpay"]');
+                console.log('Razorpay script element:', razorpayScript);
+                alert('Payment system not loaded. Please refresh the page and try again.');
+                return;
+            }
+
+            console.log('Razorpay library loaded successfully');
+
             // Open Razorpay
             let options = {
-                "key": "rzp_test_Oq0mTDIi1X3lAb",
+                "key": razorpayKey,
                 "amount": Math.round(totalPrice * 100), // Amount in paise
                 "currency": "INR",
                 "name": "Ice Cream Shop",
                 "description": `Order #${orderId}`,
-                "image": "https://example.com/your_logo.png",
+                "image": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMiIgZmlsbD0iI2ZmZmZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjaY8L3RleHQ+PC9zdmc+",
                 "handler": function (response) {
                     console.log('Razorpay payment successful:', response);
 
@@ -1438,12 +1571,12 @@
                         });
                 },
                 "prefill": {
-                    "name": "Customer Name",
-                    "email": "customer@example.com",
+                    "name": customerName || "Customer",
+                    "email": customerEmail || "customer@example.com",
                     "contact": "9999999999"
                 },
                 "theme": {
-                    "color": "#3399cc"
+                    "color": "#4F46E5"
                 },
                 "modal": {
                     "ondismiss": function () {
@@ -1452,8 +1585,23 @@
                     }
                 }
             };
-            let rzp = new Razorpay(options);
-            rzp.open();
+
+            try {
+                console.log('Creating Razorpay instance with options:', options);
+                let rzp = new Razorpay(options);
+
+                // Add error event listener
+                rzp.on('payment.failed', function (response) {
+                    console.error('Razorpay payment failed:', response.error);
+                    alert('Payment failed: ' + response.error.description);
+                });
+
+                console.log('Opening Razorpay checkout...');
+                rzp.open();
+            } catch (error) {
+                console.error('Razorpay initialization error:', error);
+                alert('Payment system error: ' + error.message + '. Please try again or contact support.');
+            }
         }
 
         function showPaymentConfirmation(orderId, amount) {
@@ -1493,6 +1641,8 @@
             window.location.href = '/order/success/?order_id=' + orderId;
         }
     </script>
+
+
 </body>
 
 </html>
