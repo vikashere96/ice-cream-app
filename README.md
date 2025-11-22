@@ -193,6 +193,9 @@ UPI_MERCHANT_NAME=Your Shop Name
 ### Ice Cream Management 
 ![Ice Cream](media/ss/Icecream.png)
 
+### Qr/Table Management 
+![Ice Cream](media/ss/qr.png)
+
 ### Cust Screen
 ![Cust](media/ss/cust.png)
 ![Cust](media/ss/cust1.png)
