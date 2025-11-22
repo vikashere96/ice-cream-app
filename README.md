@@ -182,6 +182,8 @@ UPI_MERCHANT_NAME=Your Shop Name
 6. **Manage Tables** - Create tables and QR codes
 7. **View Analytics** - Check sales reports
 
+### Screenshots
+
 ## 🎯 Order Status Flow
 
 ```
