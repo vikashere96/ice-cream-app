@@ -182,15 +182,21 @@ UPI_MERCHANT_NAME=Your Shop Name
 6. **Manage Tables** - Create tables and QR codes
 7. **View Analytics** - Check sales reports
 
-### Screenshots
-media/ss/dashboard.png
-media/ss/Icecream.png
-media/ss/login.png
-media/ss/qr.png
-media/ss/cust.png
-media/ss/cust1.png
-media/ss/cust2.png
+## Screenshots
 
+### Login Screen
+![Login](media/ss/login.png)
+
+### Dashboard
+![Dashboard](media/ss/dashboard.png)
+
+### Ice Cream Management 
+![Ice Cream](media/ss/icecream.png)
+
+### Cust Screen
+![Cust](media/ss/cust.png)
+![Cust](media/ss/cust1.png)
+![Cust](media/ss/cust2.png)
 
 ## 🎯 Order Status Flow
 
