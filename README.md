@@ -183,13 +183,13 @@ UPI_MERCHANT_NAME=Your Shop Name
 7. **View Analytics** - Check sales reports
 
 ### Screenshots
-ss/dashboard.png
-ss/Icecream.png
-ss/login.png
-ss/qr.png
-ss/cust.png
-ss/cust1.png
-ss/cust2.png
+media/ss/dashboard.png
+media/ss/Icecream.png
+media/ss/login.png
+media/ss/qr.png
+media/ss/cust.png
+media/ss/cust1.png
+media/ss/cust2.png
 
 
 ## 🎯 Order Status Flow
