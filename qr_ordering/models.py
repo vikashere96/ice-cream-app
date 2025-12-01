@@ -219,8 +219,8 @@ class ShopSettings(models.Model):
     
     # Payment Settings
     upi_enabled = models.BooleanField(default=True)
-    upi_id = models.CharField(max_length=100, blank=True, default='7383712117@yespop')
-    upi_merchant_name = models.CharField(max_length=100, blank=True, default='Ice Cream Shop')
+    upi_id = models.CharField(max_length=100, blank=True, default='your-upi-id@bank')
+    upi_merchant_name = models.CharField(max_length=100, blank=True, default='Your Shop Name')
     
     razorpay_enabled = models.BooleanField(default=False)
     razorpay_key_id = models.CharField(max_length=100, blank=True)
@@ -232,8 +232,8 @@ class ShopSettings(models.Model):
     # Email Settings
     smtp_host = models.CharField(max_length=100, default='smtp.gmail.com')
     smtp_port = models.IntegerField(default=587)
-    from_email = models.EmailField(default='vikasmca96@gmail.com')
-    from_name = models.CharField(max_length=100, default='Ice Cream Shop')
+    from_email = models.EmailField(default='your-email@gmail.com')
+    from_name = models.CharField(max_length=100, default='Your Shop Name')
     email_password = models.CharField(max_length=200, blank=True)
     email_verification_required = models.BooleanField(default=True)
     

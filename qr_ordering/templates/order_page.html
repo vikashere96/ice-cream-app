@@ -947,8 +947,8 @@
                     console.log(data); // Debug log
                     if (data.status === 'success') {
                         let totalPrice = Object.values(cart).reduce((sum, item) => sum + item.quantity * item.price, 0);
-                        // Use a valid UPI ID - replace with your actual UPI ID
-                        let upiUrl = `upi://pay?pa=7383712117@yespop&pn=Ice cream shop&am=${totalPrice.toFixed(2)}&cu=INR&tn=Order Payment`;
+                        // Use UPI ID from settings
+                        let upiUrl = `upi://pay?pa={{ upi_merchant_id }}&pn={{ upi_merchant_name }}&am=${totalPrice.toFixed(2)}&cu=INR&tn=Order Payment`;
                         // Use <a> tag for UPI redirection (better compatibility)
                         let a = document.createElement('a');
                         a.href = upiUrl;
@@ -1001,9 +1001,9 @@
         function openUPI(app) {
             // Get the total price from the cart
             let totalPrice = Object.values(cart).reduce((sum, item) => sum + item.quantity * item.price, 0);
-            // Use a valid UPI ID - replace with your actual UPI ID
-            const upiId = '7383712117@yespop';  // Replace with your actual UPI ID
-            const merchantName = 'Ice Cream Shop';
+            // Use UPI ID from settings
+            const upiId = '{{ upi_merchant_id }}';
+            const merchantName = '{{ upi_merchant_name }}';
             let url = `upi://pay?pa=${upiId}&pn=${merchantName}&am=${totalPrice.toFixed(2)}&cu=INR&tn=Order Payment`;
 
             // App-specific modifications
@@ -1136,8 +1136,8 @@
 
             // UPI Configuration
             const UPI_CONFIG = {
-                merchantId: '7383712117@yespop',
-                merchantName: 'Ice cream shop',
+                merchantId: '{{ upi_merchant_id }}',
+                merchantName: '{{ upi_merchant_name }}',
                 currency: 'INR'
             };
 

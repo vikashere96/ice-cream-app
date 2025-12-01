@@ -72,30 +72,15 @@ configure_*.py
 enable_*.py
 setup_*.py
 
-# Documentation (except main README)
-*_GUIDE.md
-*_README.md
+# Documentation (temporary/debug files only)
 *_FIXES.md
 *_TESTING.md
-*_INSTRUCTIONS.md
-*_SETUP.md
 *_DEBUG.md
 *_WORKING.md
 *_FIXED.md
 *_APPLIED.md
 *_REDESIGN.md
-*_TROUBLESHOOTING.md
 *_VERIFICATION.md
-*_PAYMENT.md
-*_SECURITY.md
-*_DASHBOARD.md
-*_REFUND.md
-*_ORDER.md
-*_EMAIL.md
-*_LOGIN.md
-*_PANEL.md
-*_CLIENT.md
-*_ADMIN.md
 
 # Test files
 test_*.html

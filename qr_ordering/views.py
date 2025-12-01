@@ -47,6 +47,10 @@ def order_page(request, token):
     customer_name = request.session.get('customer_name')
     customer_picture = request.session.get('customer_picture')
     
+    # Get UPI settings from environment
+    upi_merchant_id = os.environ.get('UPI_MERCHANT_ID', 'your-upi-id@bank')
+    upi_merchant_name = os.environ.get('UPI_MERCHANT_NAME', 'Your Shop Name')
+    
     return render(request, 'order_page.html', {
         'table': table,
         'ice_creams': valid_ice_creams,
@@ -54,7 +58,9 @@ def order_page(request, token):
         'customer_picture': customer_picture,
         'customer_email': request.session.get('customer_email', ''),
         'email_verified': request.session.get('email_verified', False),
-        'razorpay_key': getattr(settings, 'RAZORPAY_KEY_ID', 'rzp_test_Oq0mTDIi1X3lAb'),
+        'razorpay_key': getattr(settings, 'RAZORPAY_KEY_ID', ''),
+        'upi_merchant_id': upi_merchant_id,
+        'upi_merchant_name': upi_merchant_name,
     })
 from django.views.decorators.csrf import csrf_exempt
 import requests
